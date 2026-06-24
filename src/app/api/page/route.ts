@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { datePageUpdateSchema } from "@/lib/validation";
 
 export async function GET() {
   const session = await getSession();
@@ -16,27 +17,20 @@ export async function GET() {
   return NextResponse.json({ datePage });
 }
 
-const EDITABLE_FIELDS = [
-  "name",
-  "theme",
-  "inviteConfig",
-  "yesConfig",
-  "noConfig",
-  "reactionConfig",
-  "schedulingConfig",
-  "preferenceConfig",
-  "confirmationConfig",
-] as const;
-
 export async function PUT(request: Request) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await request.json().catch(() => ({}));
-  const data: Record<string, unknown> = {};
-  for (const field of EDITABLE_FIELDS) {
-    if (field in body) data[field] = body[field];
+  const body = await request.json().catch(() => null);
+  const parsed = datePageUpdateSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
   }
+
+  // Only fields actually present in the request are included by safeParse's
+  // output (the schema's keys are all .optional()), so this still supports
+  // partial updates of one config field at a time.
+  const data = parsed.data;
 
   const datePage = await prisma.datePage.upsert({
     where: { userId: session.userId },

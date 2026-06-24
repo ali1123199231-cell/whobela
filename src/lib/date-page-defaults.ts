@@ -65,6 +65,40 @@ export function withDefaults<T extends object>(value: unknown, defaults: T): T {
   return { ...defaults, ...(value as Partial<T>) };
 }
 
+const TIME_SLOT_PATTERN = /^(1[0-2]|[1-9]):(00|30) (AM|PM)$/;
+
+/**
+ * Mirrors SchedulingStep's client-side slot generation (buildAvailableDates/
+ * buildTimeSlots) so a direct API call can't submit a date/time outside the
+ * page's configured availability — the client only ever offers slots built
+ * the same way, so this should never reject a legitimate submission.
+ */
+export function isValidBookingSlot(config: SchedulingConfig, chosenDate: string, chosenTime: string): boolean {
+  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(chosenDate);
+  if (!dateMatch) return false;
+  const [, y, m, d] = dateMatch;
+  const date = new Date(Number(y), Number(m) - 1, Number(d));
+  if (date.getFullYear() !== Number(y) || date.getMonth() !== Number(m) - 1 || date.getDate() !== Number(d)) {
+    return false; // rolled over (e.g. day 31 in a 30-day month) -> not a real date
+  }
+  if (!config.availableDays.includes(date.getDay())) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
+  const dayDiff = Math.round((date.getTime() - today.getTime()) / 86_400_000);
+  if (dayDiff < 0 || dayDiff >= config.dateRangeDays) return false;
+
+  const timeMatch = TIME_SLOT_PATTERN.exec(chosenTime);
+  if (!timeMatch) return false;
+  const [, h12Str, , period] = timeMatch;
+  const h12 = Number(h12Str);
+  const hour24 = period === "AM" ? (h12 === 12 ? 0 : h12) : h12 === 12 ? 12 : h12 + 12;
+  if (hour24 < config.startHour || hour24 >= config.endHour) return false;
+
+  return true;
+}
+
 export type ThemeKey = "romantic-pink" | "ocean-blue" | "sunset-orange" | "lavender-dream" | "classic-red";
 
 export type ThemeDefinition = {

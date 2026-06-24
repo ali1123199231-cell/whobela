@@ -33,7 +33,12 @@ export async function POST(request: Request) {
     },
   });
 
-  const token = await createSessionToken({ userId: user.id, email: user.email, username: user.username });
+  const token = await createSessionToken({
+    userId: user.id,
+    email: user.email,
+    username: user.username,
+    tokenVersion: user.tokenVersion,
+  });
   await setSessionCookie(token);
   await sendVerificationCode(user, firstName);
 

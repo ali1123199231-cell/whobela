@@ -21,10 +21,18 @@ export async function POST(request: Request) {
   if (!subscriptionId) return NextResponse.json({ ok: true });
 
   if (ACTIVE_EVENTS.has(eventType)) {
-    await prisma.subscription.updateMany({
-      where: { externalSubscriptionId: subscriptionId },
-      data: { status: "ACTIVE" },
-    });
+    // No Subscription row exists yet at this point (checkout creation no
+    // longer writes one — see /api/billing/paypal/checkout) — this is the
+    // first time we know the subscription was actually approved, so create
+    // it here using custom_id (set to the userId at creation time).
+    const userId = body.resource?.custom_id as string | undefined;
+    if (userId) {
+      await prisma.subscription.upsert({
+        where: { userId },
+        create: { userId, provider: "PAYPAL", externalSubscriptionId: subscriptionId, status: "ACTIVE" },
+        update: { provider: "PAYPAL", externalSubscriptionId: subscriptionId, status: "ACTIVE" },
+      });
+    }
   } else if (CANCELLED_EVENTS.has(eventType)) {
     await prisma.subscription.updateMany({
       where: { externalSubscriptionId: subscriptionId },

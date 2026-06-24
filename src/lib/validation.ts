@@ -87,6 +87,63 @@ export const recipientContactSchema = z
     { message: "At least one contact method is required" }
   );
 
+export const themeKeySchema = z.enum(["romantic-pink", "ocean-blue", "sunset-orange", "lavender-dream", "classic-red"]);
+
+export const inviteConfigSchema = z.object({
+  question: z.string().max(200),
+  subtitle: z.string().max(200),
+  emoji: z.string().max(16),
+});
+
+export const yesConfigSchema = z.object({
+  buttonText: z.string().min(1).max(60),
+  celebration: z.enum(["confetti", "hearts", "none"]),
+});
+
+export const noConfigSchema = z.object({
+  enabled: z.boolean(),
+  difficulty: z.enum(["easy", "medium", "hard"]),
+  messages: z.array(z.string().max(60)).min(1).max(10),
+});
+
+export const reactionConfigSchema = z.object({
+  message: z.string().max(200),
+  buttonText: z.string().min(1).max(60),
+});
+
+export const schedulingConfigSchema = z
+  .object({
+    availableDays: z.array(z.number().int().min(0).max(6)).min(1).max(7),
+    startHour: z.number().int().min(0).max(23),
+    endHour: z.number().int().min(0).max(23),
+    timezone: z.string().min(1).max(60),
+    dateRangeDays: z.number().int().min(1).max(365),
+  })
+  .refine((c) => c.endHour > c.startHour, { message: "endHour must be after startHour" });
+
+export const preferenceConfigSchema = z.object({
+  question: z.string().max(200),
+  options: z.array(z.object({ emoji: z.string().max(16), label: z.string().min(1).max(60) })).max(10),
+  multiSelect: z.boolean(),
+});
+
+export const confirmationConfigSchema = z.object({
+  message: z.string().max(200),
+  subMessage: z.string().max(200),
+});
+
+export const datePageUpdateSchema = z.object({
+  name: z.string().min(1).max(120).optional(),
+  theme: themeKeySchema.optional(),
+  inviteConfig: inviteConfigSchema.optional(),
+  yesConfig: yesConfigSchema.optional(),
+  noConfig: noConfigSchema.optional(),
+  reactionConfig: reactionConfigSchema.optional(),
+  schedulingConfig: schedulingConfigSchema.optional(),
+  preferenceConfig: preferenceConfigSchema.optional(),
+  confirmationConfig: confirmationConfigSchema.optional(),
+});
+
 export const responseSubmitSchema = z.object({
   recipientName: z.string().min(1).max(120),
   recipientContact: recipientContactSchema,

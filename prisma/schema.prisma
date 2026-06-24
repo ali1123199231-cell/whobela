@@ -20,9 +20,16 @@ model User {
   verificationCodeHash       String?
   verificationCodeExpiresAt  DateTime?
   verificationCodeSentAt     DateTime?
+  verificationCodeAttempts   Int       @default(0)
   resetCodeHash              String?
   resetCodeExpiresAt         DateTime?
   resetCodeSentAt            DateTime?
+  resetCodeAttempts          Int       @default(0)
+  failedLoginAttempts        Int       @default(0)
+  loginLockedUntil           DateTime?
+  // Bumped on password change/reset so existing session JWTs (which embed the
+  // version at sign-time) stop validating everywhere at once.
+  tokenVersion               Int       @default(0)
   createdAt                  DateTime  @default(now())
   updatedAt                  DateTime  @updatedAt
 

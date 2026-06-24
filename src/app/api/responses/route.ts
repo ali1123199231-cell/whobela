@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { responseSubmitSchema } from "@/lib/validation";
-import { getLiveStatus } from "@/lib/date-page";
+import { getLiveStatus, isBillingBypassed } from "@/lib/date-page";
 import { sendNewResponseEmail } from "@/lib/email";
 import { isShowcaseAccount } from "@/lib/showcase";
+import { DEFAULT_SCHEDULING_CONFIG, isValidBookingSlot, withDefaults } from "@/lib/date-page-defaults";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
     include: { user: { include: { subscription: true } } },
   });
   const subscriptionActive =
+    isBillingBypassed() ||
     datePage?.user.subscription?.status === "ACTIVE" ||
     (datePage ? await isShowcaseAccount(datePage.user.username) : false);
   if (!datePage || !getLiveStatus(datePage, subscriptionActive).isLive) {
@@ -29,6 +31,11 @@ export async function POST(request: Request) {
   }
 
   const data = parsed.data;
+  const schedulingConfig = withDefaults(datePage.schedulingConfig, DEFAULT_SCHEDULING_CONFIG);
+  if (!isValidBookingSlot(schedulingConfig, data.chosenDate, data.chosenTime)) {
+    return NextResponse.json({ error: "That date/time isn't available" }, { status: 400 });
+  }
+
   const response = await prisma.response.create({
     data: {
       datePageId,

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession, hashPassword, verifyPassword } from "@/lib/auth";
+import { getSession, hashPassword, verifyPassword, createSessionToken, setSessionCookie } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { changePasswordSchema } from "@/lib/validation";
 
@@ -19,6 +19,22 @@ export async function PUT(request: Request) {
   }
 
   const passwordHash = await hashPassword(parsed.data.newPassword);
-  await prisma.user.update({ where: { id: session.userId }, data: { passwordHash } });
+  await prisma.user.update({
+    where: { id: session.userId },
+    // Invalidate every other outstanding session — see lib/auth.ts.
+    data: { passwordHash, tokenVersion: { increment: 1 } },
+  });
+
+  // The increment above invalidates the JWT the caller is currently using
+  // too (its embedded tokenVersion is now stale), so re-issue a fresh one
+  // for this session rather than silently logging the user out.
+  const token = await createSessionToken({
+    userId: session.userId,
+    email: session.email,
+    username: session.username,
+    tokenVersion: session.tokenVersion + 1,
+  });
+  await setSessionCookie(token);
+
   return NextResponse.json({ ok: true });
 }

@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth";
 import { verifyEmailSchema } from "@/lib/validation";
+import { MAX_CODE_ATTEMPTS } from "@/lib/email-verification";
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -27,10 +28,30 @@ export async function POST(request: Request) {
   if (user.verificationCodeExpiresAt.getTime() < Date.now()) {
     return NextResponse.json({ error: "That code expired — request a new one" }, { status: 400 });
   }
+  if (user.verificationCodeAttempts >= MAX_CODE_ATTEMPTS) {
+    return NextResponse.json({ error: "Too many attempts — request a new code" }, { status: 429 });
+  }
 
   const matches = await verifyPassword(parsed.data.code, user.verificationCodeHash);
   if (!matches) {
-    return NextResponse.json({ error: "Incorrect code, try again" }, { status: 400 });
+    const attempts = user.verificationCodeAttempts + 1;
+    await prisma.user.update({
+      where: { id: user.id },
+      data:
+        attempts >= MAX_CODE_ATTEMPTS
+          ? { verificationCodeAttempts: attempts, verificationCodeHash: null, verificationCodeExpiresAt: null }
+          : { verificationCodeAttempts: attempts },
+    });
+    const remaining = MAX_CODE_ATTEMPTS - attempts;
+    return NextResponse.json(
+      {
+        error:
+          remaining > 0
+            ? `Incorrect code, try again (${remaining} attempt${remaining === 1 ? "" : "s"} left)`
+            : "Too many attempts — request a new code",
+      },
+      { status: remaining > 0 ? 400 : 429 }
+    );
   }
 
   await prisma.user.update({

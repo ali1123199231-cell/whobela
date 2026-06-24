@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { createPaypalSubscription } from "@/lib/paypal";
-import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -18,11 +17,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Payments are coming soon" }, { status: 503 });
   }
 
-  await prisma.subscription.upsert({
-    where: { userId: session.userId },
-    create: { userId: session.userId, provider: "PAYPAL", externalSubscriptionId: result.subscriptionId, status: "PAST_DUE" },
-    update: { provider: "PAYPAL", externalSubscriptionId: result.subscriptionId, status: "PAST_DUE" },
-  });
-
+  // Deliberately not writing a Subscription row here: the user hasn't
+  // approved anything yet at this point, only started checkout. The row is
+  // created by the webhook on BILLING.SUBSCRIPTION.ACTIVATED instead (using
+  // resource.custom_id, set to this userId above), matching how the Stripe
+  // checkout route doesn't write anything until checkout.session.completed.
   return NextResponse.json({ url: result.approveUrl });
 }

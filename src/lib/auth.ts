@@ -1,9 +1,13 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 
 const COOKIE_NAME = "whobela_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30; // 30 days
+
+export const MAX_LOGIN_ATTEMPTS = 5;
+export const LOGIN_LOCKOUT_MS = 15 * 60 * 1000;
 
 function getSecret() {
   const secret = process.env.JWT_SECRET;
@@ -15,6 +19,7 @@ export type SessionPayload = {
   userId: string;
   email: string;
   username: string;
+  tokenVersion: number;
 };
 
 export async function hashPassword(password: string) {
@@ -53,10 +58,23 @@ export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
+
+  let payload: SessionPayload;
   try {
-    const { payload } = await jwtVerify(token, getSecret());
-    return payload as unknown as SessionPayload;
+    const verified = await jwtVerify(token, getSecret());
+    payload = verified.payload as unknown as SessionPayload;
   } catch {
     return null;
   }
+
+  // Reject tokens signed under an older tokenVersion — bumped on password
+  // change/reset so every other outstanding session is invalidated at once,
+  // since the JWT itself is otherwise stateless and never checked again.
+  const current = await prisma.user.findUnique({
+    where: { id: payload.userId },
+    select: { tokenVersion: true },
+  });
+  if (!current || current.tokenVersion !== payload.tokenVersion) return null;
+
+  return payload;
 }

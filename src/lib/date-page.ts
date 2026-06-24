@@ -31,11 +31,21 @@ async function loadDatePageWithOwner(username: string) {
   return user;
 }
 
+// Only ever true outside production (see /api/billing/status) — exported so
+// it actually does what its name/UI copy claims everywhere subscription
+// status feeds into the live/expired gate, instead of just affecting the
+// billing dashboard's display while pages still expire on the real
+// 30-minute trial underneath it.
+export function isBillingBypassed() {
+  return process.env.BILLING_BYPASS === "true" && process.env.APP_ENV !== "production";
+}
+
 export async function getLiveDatePageByUsername(username: string): Promise<LiveDatePageResult> {
   const user = await loadDatePageWithOwner(username);
   if (!user || !user.datePage) return { state: "not-found" };
 
-  const subscriptionActive = user.subscription?.status === "ACTIVE" || (await isShowcaseAccount(username));
+  const subscriptionActive =
+    isBillingBypassed() || user.subscription?.status === "ACTIVE" || (await isShowcaseAccount(username));
   const { isLive, trialEndsAt } = getLiveStatus(user.datePage, subscriptionActive);
 
   if (user.datePage.status !== "PUBLISHED") return { state: "not-found" };
