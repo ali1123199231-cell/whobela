@@ -1,0 +1,101 @@
+(smartlock_common) {
+    reverse_proxy smartlock-frontend:80
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://www.google-analytics.com https://region1.google-analytics.com; frame-src https://js.stripe.com https://www.paypal.com; object-src 'none'; base-uri 'self';"
+        -Server
+    }
+
+    encode gzip
+
+    @auth_endpoints {
+        path /api/v1/auth/login /api/v1/auth/register
+    }
+    handle @auth_endpoints {
+        reverse_proxy smartlock-frontend:80 {
+            header_up X-Real-IP {remote_host}
+        }
+    }
+}
+
+# propvian.com gets a normal eagerly-managed cert (no overlap with the
+# *.propvian.com wildcard below, so Caddy provisions it proactively).
+propvian.com {
+    import smartlock_common
+}
+
+# www.propvian.com textually matches the *.propvian.com wildcard pattern
+# below, which makes Caddy's automatic-HTTPS qualification defer it to
+# on-demand instead of eagerly provisioning it (silently — no cert is ever
+# obtained and the static-policy path doesn't request one during the
+# handshake either, producing a bare TLS handshake failure). Explicitly
+# marking it on_demand routes it through the already-working on-demand
+# obtain flow that *.propvian.com uses (the shared ask-router approves it,
+# since www.propvian.com matches its propvian.com route).
+www.propvian.com {
+    tls {
+        on_demand
+    }
+
+    import smartlock_common
+}
+
+# ── Guest booking subdomains: {slug}.propvian.com ──────────────────────────────
+# Uses on-demand TLS: Caddy issues individual HTTP01 certs per subdomain as
+# they are first visited. The ask endpoint (shared ask-router) validates only
+# real org slugs via smartlock-backend's own check-subdomain endpoint.
+# Prerequisite: wildcard A record  *.propvian.com → server IP (already set).
+*.propvian.com {
+    tls {
+        on_demand
+    }
+
+    @isSubdomain not host propvian.com www.propvian.com
+    handle @isSubdomain {
+        reverse_proxy smartlock-frontend:80
+
+        header {
+            -Server
+            X-Content-Type-Options "nosniff"
+            Referrer-Policy "strict-origin-when-cross-origin"
+            Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.paypal.com https://www.paypalobjects.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://www.paypal.com https://www.google-analytics.com https://region1.google-analytics.com https://www.google.com https://www.googletagmanager.com; frame-src https://js.stripe.com https://www.paypal.com; object-src 'none';"
+        }
+
+        encode gzip
+    }
+}
+
+# Custom external domains for ANY app on this Caddy instance (e.g.
+# www.w-turcji.pl, www.norblina.pl for smartlock2, or a whobela user's own
+# domain). Caddy allows only one `:443` catch-all per instance, so this one
+# block has to serve every app — it proxies to the shared ask-router's
+# second port (8082), which re-resolves domain ownership per-request and
+# forwards to whichever app's real upstream actually owns it. Don't add a
+# second `:443` block elsewhere (e.g. whobela.caddy) for this reason.
+:443 {
+    tls {
+        on_demand
+    }
+
+    reverse_proxy ask-router:8082
+
+    # This block now serves custom domains for every app, not just
+    # smartlock2 — so only generic, app-agnostic headers belong here.
+    # Smartlock2's CSP (previously hardcoded here) moved out; each app is
+    # responsible for setting its own CSP at the application layer for its
+    # custom-domain traffic, the same way it would for its own first-party
+    # domains.
+    header {
+        -Server
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    encode gzip
+}

@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: whobela-staging-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: whobela
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: whobela_staging
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U whobela -d whobela_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: whobela-staging-app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://whobela:${POSTGRES_PASSWORD}@postgres:5432/whobela_staging
+      JWT_SECRET: "${JWT_SECRET}"
+      ROOT_DOMAIN: dev.whobela.com
+      UPLOAD_DIR: /app/uploads
+      NODE_ENV: production
+      APP_ENV: staging
+      BILLING_BYPASS: "true"
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+      - shared-edge-net
+
+volumes:
+  postgres_data:
+  uploads_data:
+
+networks:
+  # See docker-compose.prod.yml for why postgres must not join shared-edge-net.
+  internal: {}
+  shared-edge-net:
+    external: true

@@ -1,0 +1,65 @@
+(whobela_common) {
+    reverse_proxy whobela-app:3000
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    encode gzip
+}
+
+# whobela.com gets a normal eagerly-managed cert (no overlap with the
+# *.whobela.com wildcard below, so Caddy provisions it proactively).
+whobela.com {
+    import whobela_common
+}
+
+# www.whobela.com textually matches the *.whobela.com wildcard pattern below,
+# which makes Caddy's automatic-HTTPS qualification defer it to on-demand
+# instead of eagerly provisioning it (silently — no cert is ever obtained and
+# the static-policy path doesn't request one during the handshake either,
+# producing a bare TLS handshake failure). Explicitly marking it on_demand
+# here routes it through the same already-working on-demand obtain flow that
+# *.whobela.com uses (the shared ask-router approves it, since
+# www.whobela.com matches its whobela.com route).
+www.whobela.com {
+    tls {
+        on_demand
+    }
+
+    import whobela_common
+}
+
+# Per-user pages: {username}.whobela.com — on-demand TLS, validated by the
+# shared ask-router against whobela-app's /api/public/check-domain.
+# Prerequisite: wildcard A record *.whobela.com → server IP (already set).
+*.whobela.com {
+    tls {
+        on_demand
+    }
+
+    @isSubdomain not host whobela.com www.whobela.com
+    handle @isSubdomain {
+        reverse_proxy whobela-app:3000
+
+        header {
+            -Server
+            X-Content-Type-Options "nosniff"
+            Referrer-Policy "strict-origin-when-cross-origin"
+        }
+
+        encode gzip
+    }
+}
+
+# Custom domains for whobela (e.g. a user's own yourname.com, connected via
+# Settings) are served through the shared `:443` catch-all in
+# conf.d/smartlock.caddy — Caddy allows only one catch-all per port, so that
+# one block forwards to the shared ask-router's proxy port (8082), which
+# resolves per-request which app actually owns the domain. Validation itself
+# happens in /api/public/check-domain (this app) against
+# DatePage.customDomain + customDomainVerifiedAt.

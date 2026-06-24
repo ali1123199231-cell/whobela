@@ -1,0 +1,39 @@
+# dev.whobela.com matches the *.whobela.com wildcard in whobela.caddy, which
+# defers it to on-demand instead of eager provisioning (see the comment on
+# www.whobela.com there for the full explanation). Mark it on_demand
+# explicitly so it goes through the already-working on-demand obtain flow.
+dev.whobela.com {
+    tls {
+        on_demand
+    }
+
+    reverse_proxy whobela-staging-app:3000
+
+    header {
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    encode gzip
+}
+
+# Per-user staging pages: {username}.dev.whobela.com
+*.dev.whobela.com {
+    tls {
+        on_demand
+    }
+
+    @isSubdomain not host dev.whobela.com
+    handle @isSubdomain {
+        reverse_proxy whobela-staging-app:3000
+
+        header {
+            -Server
+            X-Content-Type-Options "nosniff"
+            Referrer-Policy "strict-origin-when-cross-origin"
+        }
+
+        encode gzip
+    }
+}

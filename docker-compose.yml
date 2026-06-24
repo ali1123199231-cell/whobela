@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: whobela_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: whobela
+      POSTGRES_PASSWORD: whobela_dev_pass
+      POSTGRES_DB: whobela_db
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U whobela -d whobela_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: whobela_mailhog
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: whobela_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://whobela:whobela_dev_pass@postgres:5432/whobela_db?schema=public
+      JWT_SECRET: ${JWT_SECRET:-local_dev_secret_change_me}
+      ROOT_DOMAIN: localhost:3000
+      NODE_ENV: development
+      APP_ENV: development
+      BILLING_BYPASS: "true"
+      MAILHOG_HOST: mailhog
+      MAILHOG_PORT: "1025"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+      - uploads_data:/app/uploads
+
+volumes:
+  postgres_data:
+  uploads_data:

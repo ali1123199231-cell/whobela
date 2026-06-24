@@ -1,0 +1,161 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                         String    @id @default(uuid())
+  email                      String    @unique
+  passwordHash               String
+  username                   String    @unique
+  emailNotificationsEnabled  Boolean   @default(true)
+  emailVerifiedAt            DateTime?
+  verificationCodeHash       String?
+  verificationCodeExpiresAt  DateTime?
+  verificationCodeSentAt     DateTime?
+  resetCodeHash              String?
+  resetCodeExpiresAt         DateTime?
+  resetCodeSentAt            DateTime?
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
+
+  profile      Profile?
+  media        Media[]
+  datePage     DatePage?
+  subscription Subscription?
+
+  @@map("users")
+}
+
+model Profile {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName              String
+  nickname               String?
+  age                    Int?
+  location               String?
+  occupation             String?
+  hobbies                String?
+  interests              String?
+  favoriteActivities     String?
+  personalityDescription String?
+  instagram              String?
+  tiktok                 String?
+  facebook               String?
+  whatsapp               String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+enum MediaKind {
+  PROFILE_PHOTO
+  BOOKER_PHOTO
+}
+
+model Media {
+  id        String    @id @default(uuid())
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      MediaKind
+  path      String
+  order     Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  responses Response[]
+
+  @@map("media")
+}
+
+enum DatePageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model DatePage {
+  id                     String         @id @default(uuid())
+  userId                 String         @unique
+  user                   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                   String
+  status                 DatePageStatus @default(DRAFT)
+  theme                  String         @default("romantic-pink")
+  inviteConfig           Json           @default("{}")
+  yesConfig              Json           @default("{}")
+  noConfig               Json           @default("{}")
+  reactionConfig         Json           @default("{}")
+  schedulingConfig       Json           @default("{}")
+  preferenceConfig       Json           @default("{}")
+  confirmationConfig     Json           @default("{}")
+  publishedAt            DateTime?
+  firstPublishedAt       DateTime?
+  customDomain           String?        @unique
+  customDomainVerifiedAt DateTime?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  responses Response[]
+
+  @@map("date_pages")
+}
+
+model Response {
+  id                    String   @id @default(uuid())
+  datePageId            String
+  datePage              DatePage @relation(fields: [datePageId], references: [id], onDelete: Cascade)
+  recipientName         String
+  recipientContact      Json
+  recipientMessage      String?
+  recipientPhotoMediaId String?
+  recipientPhotoMedia   Media?   @relation(fields: [recipientPhotoMediaId], references: [id])
+  preferenceSelections  Json?
+  chosenDate            String
+  chosenTime            String
+  timezone              String
+  createdAt             DateTime @default(now())
+
+  @@map("responses")
+}
+
+enum SubscriptionProvider {
+  STRIPE
+  PAYPAL
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+}
+
+model Subscription {
+  id                     String               @id @default(uuid())
+  userId                 String               @unique
+  user                   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider               SubscriptionProvider
+  externalSubscriptionId String
+  status                 SubscriptionStatus
+  currentPeriodEnd       DateTime?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  @@map("subscriptions")
+}
+
+model SystemConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_config")
+}

@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.field {
+  border-radius: 0.75rem;
+  border: 1px solid #fecdd3;
+  padding: 0.5rem 1rem;
+  outline: none;
+}
+
+.field:focus {
+  border-color: #fb7185;
+}
