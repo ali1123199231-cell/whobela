@@ -9,6 +9,10 @@ services:
       POSTGRES_DB: whobela_prod
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Bound to loopback only — reach it via `ssh -L 15432:localhost:15432`,
+      # never expose this on the public interface.
+      - "127.0.0.1:15432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U whobela -d whobela_prod"]
       interval: 10s
