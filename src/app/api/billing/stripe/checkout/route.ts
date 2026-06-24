@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { getStripeClient, getStripePublicConfig } from "@/lib/stripe";
+import { getRootOrigin } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
 
-export async function POST(request: Request) {
+export async function POST() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
   }
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
-  const origin = new URL(request.url).origin;
+  const origin = getRootOrigin();
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",

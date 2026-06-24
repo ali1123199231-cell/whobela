@@ -28,6 +28,18 @@ export async function getConfigMany(keys: string[]): Promise<Record<string, stri
   return result;
 }
 
+/**
+ * Behind the shared Caddy proxy, a Route Handler's `request.url` resolves to
+ * the app's internal bind address rather than the public host, so building
+ * absolute URLs (e.g. for Stripe/PayPal redirect targets) must go through
+ * ROOT_DOMAIN instead — same convention as src/app/dashboard/page/page.tsx.
+ */
+export function getRootOrigin() {
+  const rootDomain = process.env.ROOT_DOMAIN ?? "localhost:3000";
+  const protocol = rootDomain.startsWith("localhost") ? "http" : "https";
+  return `${protocol}://${rootDomain}`;
+}
+
 export const CONFIG_KEYS = {
   BILLING_BYPASS: "BILLING_BYPASS",
 

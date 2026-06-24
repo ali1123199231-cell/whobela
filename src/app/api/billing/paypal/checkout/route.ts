@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { createPaypalSubscription } from "@/lib/paypal";
+import { getRootOrigin } from "@/lib/config";
 
-export async function POST(request: Request) {
+export async function POST() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const origin = new URL(request.url).origin;
+  const origin = getRootOrigin();
   const result = await createPaypalSubscription(
     session.userId,
     `${origin}/dashboard/settings?success=1`,
