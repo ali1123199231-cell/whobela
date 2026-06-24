@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     include: { user: { include: { subscription: true } } },
   });
   const subscriptionActive =
-    isBillingBypassed() ||
+    (await isBillingBypassed()) ||
     datePage?.user.subscription?.status === "ACTIVE" ||
     (datePage ? await isShowcaseAccount(datePage.user.username) : false);
   if (!datePage || !getLiveStatus(datePage, subscriptionActive).isLive) {

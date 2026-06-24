@@ -1,6 +1,8 @@
 -- Seeds empty placeholder rows for every key src/lib/config.ts's CONFIG_KEYS expects.
 -- Safe to re-run: ON CONFLICT DO NOTHING leaves any already-filled-in value untouched.
 INSERT INTO system_config (id, key, value, "updatedAt") VALUES
+  -- Hard-blocked in production regardless of this value (see isBillingBypassed in src/lib/date-page.ts).
+  (gen_random_uuid(), 'BILLING_BYPASS', 'false', now()),
   -- Defaults to 'false' (live) so a freshly seeded environment fails safe; flip to 'true' for local/dev.
   (gen_random_uuid(), 'STRIPE_SANDBOX_MODE', 'false', now()),
   (gen_random_uuid(), 'STRIPE_SANDBOX_SECRET_KEY', '', now()),

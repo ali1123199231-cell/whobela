@@ -42,7 +42,6 @@ services:
       ROOT_DOMAIN: localhost:3000
       NODE_ENV: development
       APP_ENV: development
-      BILLING_BYPASS: "true"
       MAILHOG_HOST: mailhog
       MAILHOG_PORT: "1025"
     volumes:

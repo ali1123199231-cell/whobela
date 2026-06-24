@@ -34,7 +34,6 @@ services:
       UPLOAD_DIR: /app/uploads
       NODE_ENV: production
       APP_ENV: staging
-      BILLING_BYPASS: "true"
     volumes:
       - uploads_data:/app/uploads
     depends_on:
