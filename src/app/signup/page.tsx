@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { reportConversion } from "@/lib/gtag";
 
 function slugify(name: string) {
   const base = name
@@ -79,6 +80,7 @@ export default function SignupPage() {
       setError(data.error ?? "Something went wrong");
       return;
     }
+    reportConversion("AW-18015500784/SVoYCIqh57McEPDzuo5D");
     router.push("/dashboard");
   }
 
