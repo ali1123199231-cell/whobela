@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DatePageView } from "@/components/date-page";
+import { SiteFooter } from "@/components/site-footer";
 import {
   DEFAULT_THEME,
   DEFAULT_INVITE_CONFIG,
@@ -11,6 +12,7 @@ import {
 
 export default function LandingPage() {
   return (
+    <>
     <main className="flex-1 bg-gradient-to-b from-rose-50 via-white to-pink-50">
       <div className="mx-auto flex max-w-5xl flex-col items-center px-6 py-16 text-center sm:py-24">
         <span className="mb-6 inline-block rounded-full bg-rose-100 px-4 py-1 text-sm font-medium text-rose-600">
@@ -63,5 +65,7 @@ export default function LandingPage() {
         />
       </div>
     </main>
+    <SiteFooter />
+    </>
   );
 }
