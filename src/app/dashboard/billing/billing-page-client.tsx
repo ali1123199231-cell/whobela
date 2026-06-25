@@ -23,6 +23,12 @@ export function BillingPageClient({
 
   async function startCheckout(provider: "stripe" | "paypal") {
     setCheckoutLoading(provider);
+    fetch("/api/billing/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({ provider }),
+    }).catch(() => {});
     const res = await fetch(`/api/billing/${provider}/checkout`, { method: "POST" });
     const data = await res.json().catch(() => ({}));
     setCheckoutLoading(null);

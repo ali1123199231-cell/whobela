@@ -1,6 +1,10 @@
 import { Resend } from "resend";
 import nodemailer, { type Transporter } from "nodemailer";
-import { getConfig, getConfigMany, CONFIG_KEYS } from "@/lib/config";
+import { render } from "@react-email/render";
+import { getConfig, getConfigMany, CONFIG_KEYS, getRootOrigin } from "@/lib/config";
+import { VerificationCodeEmail } from "@/emails/verification-code";
+import { PasswordResetEmail } from "@/emails/password-reset";
+import { NewResponseEmail } from "@/emails/new-response";
 
 const isDev = process.env.APP_ENV === "development";
 
@@ -60,7 +64,7 @@ export async function sendVerificationEmail(to: string, { code, firstName }: { c
     await deliver({
       to,
       subject: `${code} is your whobela verification code`,
-      html: `<p>Hi ${firstName},</p><p>Your verification code is:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px;">${code}</p><p>It expires in 15 minutes.</p>`,
+      html: await render(VerificationCodeEmail({ code, firstName })),
     });
   } catch (err) {
     console.error("[email] Failed to send verification code", err);
@@ -76,7 +80,7 @@ export async function sendPasswordResetEmail(to: string, { code }: { code: strin
     await deliver({
       to,
       subject: `${code} is your whobela password reset code`,
-      html: `<p>Your password reset code is:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px;">${code}</p><p>It expires in 15 minutes. If you didn't request this, you can ignore this email.</p>`,
+      html: await render(PasswordResetEmail({ code })),
     });
   } catch (err) {
     console.error("[email] Failed to send password reset code", err);
@@ -95,7 +99,9 @@ export async function sendNewResponseEmail(
     await deliver({
       to,
       subject: `${recipientName} said yes! ❤️`,
-      html: `<p><strong>${recipientName}</strong> said yes on "${datePageName}"!</p><p>Open your whobela Inbox to see the details.</p>`,
+      html: await render(
+        NewResponseEmail({ recipientName, datePageName, inboxUrl: `${getRootOrigin()}/dashboard/inbox` })
+      ),
     });
   } catch (err) {
     console.error("[email] Failed to send new-response notification", err);

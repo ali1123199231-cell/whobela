@@ -33,10 +33,11 @@ model User {
   createdAt                  DateTime  @default(now())
   updatedAt                  DateTime  @updatedAt
 
-  profile      Profile?
-  media        Media[]
-  datePage     DatePage?
-  subscription Subscription?
+  profile            Profile?
+  media              Media[]
+  datePage           DatePage?
+  subscription       Subscription?
+  billingClickEvents BillingClickEvent[]
 
   @@map("users")
 }
@@ -155,6 +156,17 @@ model Subscription {
   updatedAt              DateTime             @updatedAt
 
   @@map("subscriptions")
+}
+
+model BillingClickEvent {
+  id        String               @id @default(uuid())
+  userId    String
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider  SubscriptionProvider
+  plan      String
+  createdAt DateTime             @default(now())
+
+  @@map("billing_click_events")
 }
 
 model SystemConfig {
