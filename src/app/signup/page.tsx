@@ -156,6 +156,18 @@ export default function SignupPage() {
 
             {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
 
+            <p className="mt-3 text-xs text-rose-500">
+              By creating an account, you agree to our{" "}
+              <Link href="/legal/terms" className="font-medium text-rose-600 underline">
+                Terms
+              </Link>{" "}
+              &{" "}
+              <Link href="/legal/community-guidelines" className="font-medium text-rose-600 underline">
+                Community Guidelines
+              </Link>
+              .
+            </p>
+
             <button
               type="submit"
               disabled={loading}
