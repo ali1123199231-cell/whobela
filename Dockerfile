@@ -4,6 +4,11 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npx prisma generate
+# ROOT_DOMAIN must be present at build time: canonical URLs, robots.txt and
+# sitemap.xml are baked into static output by `next build`. Set as a real env
+# var (via build arg) so it takes precedence over the localhost value in .env.
+ARG ROOT_DOMAIN=localhost:3000
+ENV ROOT_DOMAIN=$ROOT_DOMAIN
 RUN npm run build
 
 FROM node:22-alpine AS runner

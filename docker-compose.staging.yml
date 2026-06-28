@@ -25,6 +25,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        ROOT_DOMAIN: dev.whobela.com
     container_name: whobela-staging-app
     restart: unless-stopped
     environment:
