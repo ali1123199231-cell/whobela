@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { DatePageView } from "@/components/date-page";
 import { SiteFooter } from "@/components/site-footer";
+import { buildMetadata } from "@/lib/seo/metadata";
+import {
+  JsonLd,
+  organizationSchema,
+  websiteSchema,
+  softwareApplicationSchema,
+} from "@/lib/seo/jsonld";
 import {
   DEFAULT_THEME,
   DEFAULT_INVITE_CONFIG,
@@ -9,6 +16,22 @@ import {
   DEFAULT_REACTION_CONFIG,
   DEFAULT_SCHEDULING_CONFIG,
 } from "@/lib/date-page-defaults";
+
+export const metadata = buildMetadata({
+  title: "Ask Someone Out Online | Whobela Date Invitation Maker",
+  description:
+    "Create a personalized, interactive date invitation. Share a private link, let them respond, and schedule the date. The beautiful way to ask someone out.",
+  path: "/",
+});
+
+const POPULAR_LINKS = [
+  { href: "/create-date-invitation", label: "Create a date invitation" },
+  { href: "/ask-someone-out-online", label: "How to ask someone out online" },
+  { href: "/cute-ways-to-ask-someone-out", label: "Cute ways to ask someone out" },
+  { href: "/templates", label: "Browse invitation templates" },
+  { href: "/for/crush", label: "How to ask your crush out" },
+  { href: "/vs/dating-apps", label: "Whobela vs. dating apps" },
+];
 
 export default function LandingPage() {
   return (
@@ -64,8 +87,33 @@ export default function LandingPage() {
           }}
         />
       </div>
+
+      <section className="mx-auto max-w-3xl px-6 py-16">
+        <h2 className="text-center text-2xl font-semibold tracking-tight text-rose-950">
+          The beautiful way to ask someone out
+        </h2>
+        <p className="mt-3 text-center text-rose-700/80">
+          Whobela is a tool for creating personalized date-invitation pages — not a dating
+          app. It&apos;s for asking someone you already know, in a way they&apos;ll never forget.
+        </p>
+        <ul className="mt-8 grid gap-2 sm:grid-cols-2">
+          {POPULAR_LINKS.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className="block rounded-xl border border-rose-100 bg-white px-4 py-3 text-rose-700 transition hover:border-rose-200 hover:text-rose-600"
+              >
+                {link.label} →
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
     <SiteFooter />
+    <JsonLd data={organizationSchema()} />
+    <JsonLd data={websiteSchema()} />
+    <JsonLd data={softwareApplicationSchema()} />
     </>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { SITE, siteOrigin } from "@/lib/seo/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "whobela — Create a magical way to ask someone out",
-  description: "Create a cute interactive date invitation. Share your personal link. Let someone special choose when to meet.",
+  metadataBase: new URL(siteOrigin()),
+  title: {
+    default: "whobela — Create a magical way to ask someone out",
+    template: "%s",
+  },
+  description: SITE.defaultDescription,
+  applicationName: SITE.name,
+  robots: { index: true, follow: true },
+  openGraph: {
+    siteName: SITE.name,
+    locale: SITE.locale,
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", creator: SITE.twitter },
 };
 
 export default function RootLayout({

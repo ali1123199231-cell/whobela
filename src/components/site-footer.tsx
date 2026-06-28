@@ -2,6 +2,18 @@ import Link from "next/link";
 
 const columns = [
   {
+    heading: "Explore",
+    links: [
+      { href: "/create-date-invitation", label: "Create an invitation" },
+      { href: "/templates", label: "Templates" },
+      { href: "/date-ideas", label: "Date ideas" },
+      { href: "/tools", label: "Free tools" },
+      { href: "/blog", label: "Blog" },
+      { href: "/faq", label: "FAQ" },
+      { href: "/pricing", label: "Pricing" },
+    ],
+  },
+  {
     heading: "Company",
     links: [
       { href: "/about", label: "About" },
@@ -45,7 +57,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-rose-100 bg-white">
       <div className="mx-auto max-w-5xl px-6 py-12">
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
           {columns.map((column) => (
             <div key={column.heading}>
               <h2 className="text-sm font-semibold text-rose-950">{column.heading}</h2>

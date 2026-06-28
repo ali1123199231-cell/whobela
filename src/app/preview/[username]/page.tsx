@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicDatePage } from "@/components/date-page/public-page";
+
+// Internal preview surface — never index.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 // Local/dev fallback so the full recipient flow can be tested without
 // wildcard subdomain DNS on localhost (middleware handles real subdomains
