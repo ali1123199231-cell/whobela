@@ -16,11 +16,13 @@ export default function DeleteAccountPage() {
       <ol>
         <li>Go to your account settings.</li>
         <li>Select <strong>Delete Account</strong> and confirm.</li>
-        <li>
-          If you have an active subscription, cancel it first to avoid future billing — see
-          our <Link href="/legal/subscription-terms">Subscription Terms</Link>.
-        </li>
       </ol>
+      <p>
+        If you have an active subscription, deleting your account cancels it automatically, so
+        you won&apos;t be charged again. You can also cancel on its own — without deleting your
+        account — from <strong>Settings → Billing</strong>; see our{" "}
+        <Link href="/legal/subscription-terms">Subscription Terms</Link>.
+      </p>
       <p>
         If you&apos;re unable to access settings, email{" "}
         <a href="mailto:support@whobela.com">support@whobela.com</a> from your account email

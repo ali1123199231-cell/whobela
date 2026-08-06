@@ -6,6 +6,27 @@ export function getTrialEndsAt(firstPublishedAt: Date | null): Date | null {
 }
 
 /**
+ * Whether a subscription still entitles the owner to a live page.
+ *
+ * Cancelling stops the next charge but doesn't refund the period already paid
+ * for (see /legal/refund-policy), so a CANCELLED subscription keeps its
+ * entitlement until currentPeriodEnd passes. This matters most for PayPal,
+ * whose API cancels outright with no "at period end" option — without this the
+ * page would go dark the instant the user clicked Cancel.
+ *
+ * PAST_DUE deliberately isn't extended: that's a failed payment, not a
+ * paid-through period.
+ */
+export function isSubscriptionEntitled(
+  subscription: { status: string; currentPeriodEnd: Date | null } | null | undefined
+): boolean {
+  if (!subscription) return false;
+  if (subscription.status === "ACTIVE") return true;
+  if (subscription.status !== "CANCELLED") return false;
+  return !!subscription.currentPeriodEnd && subscription.currentPeriodEnd.getTime() > Date.now();
+}
+
+/**
  * A page is visible to the public once it's published, and stays visible either
  * while the owner has an active subscription or until the one-time trial window
  * (anchored to firstPublishedAt, not the latest publish) runs out.

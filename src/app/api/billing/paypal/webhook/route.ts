@@ -34,9 +34,18 @@ export async function POST(request: Request) {
       });
     }
   } else if (CANCELLED_EVENTS.has(eventType)) {
+    // Cancelling in PayPal's own UI never touches our cancel route, so this is
+    // the only chance to record what the user already paid for. PayPal usually
+    // drops next_billing_time once a subscription ends — when it's missing we
+    // leave currentPeriodEnd alone rather than guessing.
+    const nextBilling = body.resource?.billing_info?.next_billing_time as string | undefined;
     await prisma.subscription.updateMany({
       where: { externalSubscriptionId: subscriptionId },
-      data: { status: "CANCELLED" },
+      data: {
+        status: "CANCELLED",
+        cancelAtPeriodEnd: eventType === "BILLING.SUBSCRIPTION.CANCELLED",
+        ...(nextBilling ? { currentPeriodEnd: new Date(nextBilling) } : {}),
+      },
     });
   }
 

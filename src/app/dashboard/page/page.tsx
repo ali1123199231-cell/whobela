@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isShowcaseAccount } from "@/lib/showcase";
+import { isSubscriptionEntitled } from "@/lib/date-page-status";
 import { PageTabClient } from "./page-tab-client";
 
 export default async function PageTab() {
@@ -40,7 +41,7 @@ export default async function PageTab() {
     <PageTabClient
       datePage={datePage}
       photos={photos.map((p) => ({ id: p.id, url: `/api/media/${p.id}` }))}
-      subscriptionActive={subscription?.status === "ACTIVE" || isShowcase}
+      subscriptionActive={isSubscriptionEntitled(subscription) || isShowcase}
       liveUrl={liveUrl}
       initialNow={initialNow}
     />

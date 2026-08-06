@@ -56,7 +56,8 @@ export default function SubscriptionTermsPage() {
 
       <h2>5. Cancellation</h2>
       <p>
-        You may cancel your subscription at any time through your account settings.
+        You may cancel your subscription at any time from <strong>Settings → Billing</strong> in
+        your account. Deleting your account also cancels it automatically.
         Cancellation stops future billing but does not entitle you to a refund for the current
         billing period, except as described in our{" "}
         <Link href="/legal/refund-policy">Refund Policy</Link>. You will retain access to paid

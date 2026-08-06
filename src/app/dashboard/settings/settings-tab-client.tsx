@@ -5,7 +5,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { LogoutButton } from "../logout-button";
 
-type Subscription = { status: string; provider: string } | null;
+type Subscription = {
+  status: string;
+  provider: string;
+  cancelAtPeriodEnd: boolean;
+  entitled: boolean;
+} | null;
 
 export function SettingsTabClient({
   email: initialEmail,
@@ -29,7 +34,8 @@ export function SettingsTabClient({
   isShowcase: boolean;
 }) {
   const router = useRouter();
-  const isActive = subscription?.status === "ACTIVE";
+  const isActive = Boolean(subscription?.entitled);
+  const isCancelled = Boolean(subscription?.cancelAtPeriodEnd) || subscription?.status === "CANCELLED";
 
   // Notifications
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(initialNotifications);
@@ -174,7 +180,11 @@ export function SettingsTabClient({
       <h1 className="text-2xl font-semibold text-rose-950">Settings</h1>
 
       <Section title="Subscription">
-        {isActive ? (
+        {isActive && isCancelled ? (
+          <p className="text-sm text-rose-700/70">
+            Your subscription is cancelled — you won&apos;t be charged again.
+          </p>
+        ) : isActive ? (
           <p className="font-semibold text-rose-600">You are subscribed ❤️ via {subscription?.provider}</p>
         ) : isShowcase ? (
           <p className="text-sm text-rose-700/70">This is the showcase account — it stays live without subscribing.</p>

@@ -152,6 +152,9 @@ model Subscription {
   externalSubscriptionId String
   status                 SubscriptionStatus
   currentPeriodEnd       DateTime?
+  // Set when the user cancels but has already paid through currentPeriodEnd:
+  // status stays ACTIVE (their page keeps serving) and no renewal happens.
+  cancelAtPeriodEnd      Boolean              @default(false)
   createdAt              DateTime             @default(now())
   updatedAt              DateTime             @updatedAt
 

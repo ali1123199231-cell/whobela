@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isShowcaseAccount } from "@/lib/showcase";
 import { isBillingBypassed } from "@/lib/date-page";
+import { isSubscriptionEntitled } from "@/lib/date-page-status";
 import { SettingsTabClient } from "./settings-tab-client";
 
 export default async function SettingsTab() {
@@ -32,7 +33,16 @@ export default async function SettingsTab() {
       customDomain={datePage.customDomain}
       customDomainVerified={Boolean(datePage.customDomainVerifiedAt)}
       serverIp={serverIp}
-      subscription={subscription ? { status: subscription.status, provider: subscription.provider } : null}
+      subscription={
+        subscription
+          ? {
+              status: subscription.status,
+              provider: subscription.provider,
+              cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+              entitled: isSubscriptionEntitled(subscription),
+            }
+          : null
+      }
       bypassBilling={bypassBilling}
       isShowcase={isShowcase}
     />

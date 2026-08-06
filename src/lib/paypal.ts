@@ -70,6 +70,40 @@ export async function createPaypalSubscription(userId: string, returnUrl: string
   return { subscriptionId: data.id as string, approveUrl: approveLink?.href };
 }
 
+// PayPal has no "cancel at period end" concept — /cancel stops the
+// subscription outright — so read next_billing_time first and store it as
+// currentPeriodEnd, letting the page stay live through the period the user
+// already paid for (see getLiveStatus in date-page.ts).
+export async function getPaypalPeriodEnd(subscriptionId: string) {
+  const token = await getAccessToken();
+  if (!token) return null;
+
+  const baseUrl = await getBaseUrl();
+  const res = await fetch(`${baseUrl}/v1/billing/subscriptions/${subscriptionId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
+  const data = await res.json();
+  const nextBilling = data.billing_info?.next_billing_time as string | undefined;
+  return nextBilling ? new Date(nextBilling) : null;
+}
+
+export async function cancelPaypalSubscription(subscriptionId: string, reason = "Cancelled by user") {
+  const token = await getAccessToken();
+  if (!token) return false;
+
+  const baseUrl = await getBaseUrl();
+  const res = await fetch(`${baseUrl}/v1/billing/subscriptions/${subscriptionId}/cancel`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+  // 204 on success. 422 means it's already cancelled/expired/suspended, which
+  // is the state we wanted anyway — treat it as done so a retry (or deleting
+  // an account whose subscription PayPal already ended) doesn't hard-fail.
+  return res.ok || res.status === 422;
+}
+
 export async function verifyPaypalWebhook(headers: Headers, body: unknown) {
   const sandbox = await isPaypalSandbox();
   const webhookId = await getConfig(

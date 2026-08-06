@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { DatePage } from "@/generated/prisma/client";
-import { getLiveStatus } from "@/lib/date-page-status";
+import { getLiveStatus, isSubscriptionEntitled } from "@/lib/date-page-status";
 import { isShowcaseAccount } from "@/lib/showcase";
 import { getConfig, CONFIG_KEYS } from "@/lib/config";
 
@@ -48,7 +48,7 @@ export async function getLiveDatePageByUsername(username: string): Promise<LiveD
   if (!user || !user.datePage) return { state: "not-found" };
 
   const subscriptionActive =
-    (await isBillingBypassed()) || user.subscription?.status === "ACTIVE" || (await isShowcaseAccount(username));
+    (await isBillingBypassed()) || isSubscriptionEntitled(user.subscription) || (await isShowcaseAccount(username));
   const { isLive, trialEndsAt } = getLiveStatus(user.datePage, subscriptionActive);
 
   if (user.datePage.status !== "PUBLISHED") return { state: "not-found" };

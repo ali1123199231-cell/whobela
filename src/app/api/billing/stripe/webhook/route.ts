@@ -37,7 +37,13 @@ export async function POST(request: Request) {
     const status = subscription.status === "active" ? "ACTIVE" : subscription.status === "past_due" ? "PAST_DUE" : "CANCELLED";
     await prisma.subscription.updateMany({
       where: { externalSubscriptionId: subscription.id },
-      data: { status, currentPeriodEnd: new Date(subscription.items.data[0]?.current_period_end * 1000) },
+      data: {
+        status,
+        currentPeriodEnd: new Date(subscription.items.data[0]?.current_period_end * 1000),
+        // Stripe keeps a cancel-at-period-end subscription "active" until the
+        // period runs out, so this flag is the only signal that it won't renew.
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      },
     });
   }
 
