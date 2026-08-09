@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Accessibility Statement — whobela",
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function AccessibilityPage() {
   return (
-    <LegalPage title="Accessibility Statement" updated="[Insert Date]">
+    <LegalPage title="Accessibility Statement" updated={LEGAL.lastUpdated}>
       <p>
         Whobela is committed to making our platform usable by as many people as possible,
         including people with disabilities.

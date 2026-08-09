@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Community Guidelines — whobela",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function CommunityGuidelinesPage() {
   return (
-    <LegalPage title="Community Guidelines" updated="[Insert Date]">
+    <LegalPage title="Community Guidelines" updated={LEGAL.lastUpdated}>
       <p>
         Whobela exists to help people create thoughtful, personal invitations. These
         guidelines explain the behavior we expect from everyone using the platform, and apply
@@ -28,10 +29,11 @@ export default function CommunityGuidelinesPage() {
 
       <h2>2. Reporting</h2>
       <p>
-        If you encounter content or behavior that violates these guidelines, you can report it
-        using the in-product reporting tool (where available) or by emailing{" "}
-        <a href="mailto:support@whobela.com">support@whobela.com</a> with a description of the
-        issue and, if possible, a link or screenshot. See our{" "}
+        If you encounter content or behavior that violates these guidelines, use the{" "}
+        <strong>Report</strong> control on the invitation page itself — no account is needed
+        and you can report anonymously. You can also email{" "}
+        <a href={`mailto:${LEGAL.supportEmail}`}>{LEGAL.supportEmail}</a> with a description of
+        the issue and, if possible, a link or screenshot. See our{" "}
         <Link href="/report-abuse">Report Abuse</Link> page for more detail.
       </p>
 

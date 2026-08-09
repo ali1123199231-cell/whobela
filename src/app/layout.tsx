@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { SITE, siteOrigin } from "@/lib/seo/site";
 import { AttributionTracker } from "@/components/attribution-tracker";
@@ -53,18 +52,17 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/*
+          No analytics or advertising tag here, deliberately. The Google Ads
+          conversion tag that used to sit at the bottom of this file loaded on
+          every route — including {username}.whobela.com, where the person
+          reading is an invitation's recipient who never signed up to anything.
+          Setting advertising cookies on them with no consent prompt is what
+          /legal/cookies now promises we don't do. First-touch attribution
+          (below) replaces what it measured, and needs no such prompt.
+        */}
         <AttributionTracker />
         {children}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-18015500784"
-          strategy="afterInteractive"
-        />
-        <Script id="google-ads-gtag" strategy="afterInteractive">
-          {`window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-18015500784');`}
-        </Script>
       </body>
     </html>
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions — whobela",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalPage title="Terms & Conditions" updated="[Insert Date]">
+    <LegalPage title="Terms & Conditions" updated={LEGAL.lastUpdated}>
       <h2>1. Introduction</h2>
       <p>
         Welcome to Whobela (&ldquo;<strong>Whobela</strong>,&rdquo; &ldquo;<strong>we</strong>,&rdquo;
@@ -26,8 +27,10 @@ export default function TermsPage() {
         even if that person never creates an account.
       </p>
       <p>
-        Whobela is operated by [Company Legal Entity Name], a company registered at [Company
-        Registered Address] under registration number [Company Registration Number].
+        Whobela is operated by {LEGAL.operatorName}, a sole trader based at{" "}
+        {LEGAL.operatorAddress}, {LEGAL.governingLaw}. Whobela is not a registered company, so
+        there is no company registration number; the operator is personally the party you are
+        contracting with.
       </p>
       <p>
         By creating an account, accessing whobela.com, or interacting with any page hosted on
@@ -37,7 +40,9 @@ export default function TermsPage() {
       </p>
       <p>
         You must be at least 18 years old to create an account or to be the subject of a
-        Whobela page. Whobela is not directed at, and must not be used by, anyone under 18.
+        Whobela page, and you are asked to confirm this when you sign up. Whobela is not
+        directed at, and must not be used by, anyone under 18. If we learn that an account
+        belongs to someone under 18 we will terminate it and delete its data.
       </p>
 
       <h2>2. Account Rules</h2>
@@ -121,13 +126,16 @@ export default function TermsPage() {
 
       <h2>5. Public Pages</h2>
       <p>
-        Invitation pages you create are intended to be shared with specific people via a
-        unique link. You understand and agree that:
+        Your invitation page is published at a public web address built from your username —
+        for example <strong>yourname.whobela.com</strong>. It is intended to be shared with one
+        person, but it is not secret. You understand and agree that:
       </p>
       <ul>
-        <li>Anyone who receives or guesses your unique link may be able to view the page and the information on it, unless you have enabled available privacy controls;</li>
-        <li>You are responsible for deciding who you share your link with and for understanding the consequences of sharing personal or romantic content publicly or semi-publicly;</li>
-        <li>Whobela provides privacy settings (where available) to help you control visibility and access, and you should review and configure them before sharing a page;</li>
+        <li>The address is predictable rather than random, so anyone who knows or guesses your username can open the page and see everything on it;</li>
+        <li>Whobela asks search engines not to index invitation pages, so they should not appear in search results — but this is a request that well-behaved search engines honour, not an access control, and it does not stop anyone who has the address;</li>
+        <li>There is currently <strong>no password, allow-list, or visibility setting</strong> on invitation pages. Only publish content you are comfortable being seen by someone other than the person you sent it to;</li>
+        <li>You can take a page offline at any time using <strong>Take offline</strong> in your dashboard, which stops the link working immediately and keeps the responses you have already received;</li>
+        <li>Anyone viewing an invitation page can report it to us using the <strong>Report</strong> control on the page itself, without needing an account — see our <Link href="/legal/community-guidelines">Community Guidelines</Link>;</li>
         <li>Whobela is not responsible for what a Visitor does with a link or information after you have shared it with them.</li>
       </ul>
 
@@ -159,7 +167,7 @@ export default function TermsPage() {
         <li>Meet in public places for initial in-person meetings and tell a trusted friend or family member your plans;</li>
         <li>Avoid sharing sensitive personal information (such as your home address, financial details, or government identification) until you have established trust;</li>
         <li>Use your own judgment about who to engage with and trust your instincts if something feels wrong;</li>
-        <li>Report any suspicious, abusive, or unsafe behavior through our reporting tools or by emailing support@whobela.com.</li>
+        <li>Report any suspicious, abusive, or unsafe behavior using the <strong>Report</strong> control on the invitation page, or by emailing <a href={`mailto:${LEGAL.supportEmail}`}>{LEGAL.supportEmail}</a>.</li>
       </ul>
       <p>
         See our <Link href="/legal/safety">Safety Policy</Link> for more detailed guidance.
@@ -192,7 +200,7 @@ export default function TermsPage() {
       <h2>10. Intellectual Property</h2>
       <p>
         Whobela&apos;s name, logo, branding, software, platform design, and underlying
-        technology are the property of [Company Legal Entity Name] or its licensors and are
+        technology are the property of {LEGAL.operatorName} or its licensors and are
         protected by intellectual property laws. Except for the limited rights expressly
         granted to you to use the platform, nothing in these Terms transfers any intellectual
         property rights to you. You may not copy, modify, distribute, or create derivative
@@ -229,12 +237,12 @@ export default function TermsPage() {
 
       <h2>13. Governing Law</h2>
       <p>
-        These Terms are governed by the laws of [Governing Jurisdiction], without regard to
+        These Terms are governed by the laws of {LEGAL.governingLaw}, without regard to
         conflict-of-laws principles, except where mandatory consumer-protection laws of your
         country of residence grant you additional rights that cannot be waived — in which case
         those mandatory local protections will apply alongside these Terms. Any dispute
-        arising from these Terms will be subject to the courts of [Governing Jurisdiction],
-        unless applicable law requires otherwise.
+        arising from these Terms will be subject to {LEGAL.courts}, unless applicable law
+        requires otherwise.
       </p>
 
       <h2>14. Changes to These Terms</h2>

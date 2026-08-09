@@ -41,6 +41,12 @@ model User {
   utmContent         String?
   gclid              String?
 
+  // ISO 3166-1 alpha-2, derived server-side from Cloudflare's CF-IPCountry
+  // header at signup. The request IP itself is never read or stored, and no
+  // finer granularity than country is kept. NULL for accounts created before
+  // this shipped and for requests where the country was unknown.
+  signupCountry      String?   @db.Char(2)
+
   createdAt                  DateTime  @default(now())
   updatedAt                  DateTime  @updatedAt
 
@@ -140,8 +146,58 @@ model DatePage {
   updatedAt              DateTime       @updatedAt
 
   responses Response[]
+  reports   Report[]
 
   @@map("date_pages")
+}
+
+// Why a report is being made. CHILD_SAFETY is separated from the rest so it can
+// be triaged ahead of everything else — Google Play's child safety standards
+// require a reporting path that names it explicitly, and it is the one category
+// where a delay is not recoverable.
+enum ReportReason {
+  HARASSMENT
+  IMPERSONATION
+  SEXUAL_CONTENT
+  CHILD_SAFETY
+  SPAM
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  ACTIONED
+  DISMISSED
+}
+
+// An abuse report about an invitation page.
+//
+// Filed by whoever is looking at the page — almost always the recipient, who has
+// no account and never agreed to anything, so nothing here requires a session
+// and every field about the reporter is optional. An anonymous report that says
+// only "this is harassment" is still worth having.
+model Report {
+  id         String       @id @default(uuid())
+  // Kept as SetNull rather than Cascade: deleting the offending page must not
+  // destroy the evidence that it was reported, or a report becomes a way to
+  // find out you should delete your account.
+  datePageId String?
+  datePage   DatePage?    @relation(fields: [datePageId], references: [id], onDelete: SetNull)
+  // Denormalised so the report still says what it was about after the page is
+  // gone. Both are captured at report time and never updated.
+  pageUsername String?
+  pageUrl      String?
+  reason     ReportReason
+  details    String?
+  // Optional, so we can reply. Never required — demanding an email address from
+  // someone reporting harassment is a good way to not hear about harassment.
+  reporterEmail String?
+  status     ReportStatus @default(OPEN)
+  createdAt  DateTime     @default(now())
+
+  @@index([status, createdAt])
+  @@map("reports")
 }
 
 model Response {

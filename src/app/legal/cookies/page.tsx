@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Cookie Policy — whobela",
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <LegalPage title="Cookie Policy" updated="[Insert Date]">
+    <LegalPage title="Cookie Policy" updated={LEGAL.lastUpdated}>
       <p>
         This Cookie Policy explains how Whobela uses cookies and similar technologies on
         whobela.com and on invitation pages hosted on our platform.
@@ -22,31 +23,22 @@ export default function CookiesPage() {
         well as to provide analytics.
       </p>
 
-      <h2>2. Why We Use Cookies</h2>
-      <p>We use cookies to:</p>
-      <ul>
-        <li>Keep you securely signed in to your account;</li>
-        <li>Remember your preferences and settings;</li>
-        <li>Understand how the Service is used so we can improve it;</li>
-        <li>Protect the Service against fraud and abuse.</li>
-      </ul>
+      <h2>2. What We Actually Use</h2>
+      <p>
+        Very little. Whobela sets <strong>one cookie</strong>, and uses your browser&apos;s
+        local storage for one purpose. We run no analytics service, no advertising tags, and
+        nothing that follows you to other websites.
+      </p>
 
-      <h2>3. Types of Cookies We Use</h2>
-      <h3>Essential cookies</h3>
+      <h2>3. The One Cookie</h2>
+      <h3>Your session cookie</h3>
       <p>
-        Required for core functionality such as authentication, session management, and
-        security. These cannot be disabled without affecting how the Service works.
+        Set when you log in, and it is what keeps you signed in as you move between pages. It
+        is strictly necessary for the Service to work, so it does not require consent — but it
+        is only ever set once you have chosen to log in. Logging out clears it.
       </p>
-      <h3>Analytics cookies</h3>
       <p>
-        Help us understand how Users and Visitors interact with Whobela, such as which pages
-        are viewed and which features are used, so we can improve the product. These are used
-        only with your consent where required by law.
-      </p>
-      <h3>Preference cookies</h3>
-      <p>
-        Remember choices you&apos;ve made, such as display settings or dismissed
-        notifications, so you don&apos;t have to set them again on each visit.
+        Visitors who open an invitation page and never log in are not given a cookie at all.
       </p>
       <h3>Similar technologies (local storage)</h3>
       <p>
@@ -60,19 +52,21 @@ export default function CookiesPage() {
 
       <h2>4. Third-Party Cookies</h2>
       <p>
-        Some cookies may be set by third-party services we use to operate or analyze the
-        Service (for example, analytics or payment providers). These third parties have their
-        own privacy and cookie policies, which govern their use of any data collected through
-        their cookies.
+        None. No third party sets a cookie through Whobela. We previously ran a Google Ads
+        conversion tag on the site; it was removed on {LEGAL.lastUpdated}, along with the
+        cookies it set.
       </p>
 
       <h2>5. Managing Cookies</h2>
       <p>
-        You can control or delete cookies through your browser settings. Most browsers let you
-        refuse cookies, delete existing cookies, or be notified when a cookie is set. Disabling
-        essential cookies may prevent parts of the Service — such as staying logged in — from
-        working correctly. Where required by law, we will provide a cookie consent banner
-        allowing you to manage non-essential cookies when you first visit the site.
+        You can control or delete cookies through your browser settings, and clear local
+        storage the same way. Because the only cookie we set is the one keeping you signed in,
+        refusing it means you will not be able to stay logged in — but you can still open and
+        answer an invitation page.
+      </p>
+      <p>
+        We do not show a cookie consent banner, because we do not set anything that requires
+        consent. If that changes, we will ask before setting it.
       </p>
 
       <h2>6. Changes to This Policy</h2>

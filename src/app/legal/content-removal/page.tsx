@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Content Removal Policy — whobela",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function ContentRemovalPage() {
   return (
-    <LegalPage title="Content Removal Policy" updated="[Insert Date]">
+    <LegalPage title="Content Removal Policy" updated={LEGAL.lastUpdated}>
       <p>
         Whobela respects the intellectual property and personal rights of others. This policy
         explains how to request the removal of content hosted on Whobela, including copyright
@@ -40,8 +41,10 @@ export default function ContentRemovalPage() {
         <Link href="/legal/terms">Terms &amp; Conditions</Link> or{" "}
         <Link href="/legal/community-guidelines">Community Guidelines</Link>, including content
         that is abusive, impersonates someone without consent, or otherwise causes harm.
-        Reports can be submitted through in-product reporting tools (where available) or by
-        emailing <a href="mailto:support@whobela.com">support@whobela.com</a>.
+        Reports can be submitted using the <strong>Report</strong> control on any invitation
+        page, or by emailing{" "}
+        <a href={`mailto:${LEGAL.supportEmail}`}>{LEGAL.supportEmail}</a>. You do not need a
+        Whobela account to report something, and you can report anonymously.
       </p>
 
       <h2>3. Removal Process</h2>

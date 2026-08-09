@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Refund Policy — whobela",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function RefundPolicyPage() {
   return (
-    <LegalPage title="Refund Policy" updated="[Insert Date]">
+    <LegalPage title="Refund Policy" updated={LEGAL.lastUpdated}>
       <p>
         <strong>Whobela is free</strong>, so there is nothing to refund. We do not collect
         payment details and do not bill anyone. This policy supplements our{" "}

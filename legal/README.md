@@ -1,25 +1,24 @@
-# Whobela Legal Documentation
+# Whobela Legal Documentation — ORIGINAL DRAFTS, NOT WHAT WE PUBLISH
 
-This directory contains the full legal documentation package for Whobela, a mobile-first
-web application for creating personalized interactive dating invitation pages.
+> **These markdown files are historical drafts. Editing them changes nothing.**
+>
+> The published policies are the React pages under `src/app/legal/*/page.tsx`, and those
+> are the only authoritative version. Change those.
+>
+> These drafts were written before the product existed and describe it inaccurately —
+> they promise analytics, image processing, abuse-detection systems, visibility controls
+> and a paid subscription, none of which are real. They were also published verbatim with
+> their `[Company Legal Entity Name]` / `[Insert Date]` placeholders still in them, which
+> is the specific failure the warning in this file used to describe and did not prevent.
+> They are kept only to show what was originally drafted.
 
-All documents use the following placeholders. Replace them with finalized legal details
-before publishing:
+Operator identity, jurisdiction and the "last updated" date now live in one module,
+`src/lib/legal.ts`, so a placeholder can be missed once rather than twelve times. The
+remaining `operatorName` / `operatorAddress` values there are the last two placeholders on
+the site and must be filled before the next deploy.
 
-| Placeholder | Meaning |
-|---|---|
-| `Whobela` | Company / product name |
-| `whobela.com` | Website domain |
-| `support@whobela.com` | General support contact |
-| `privacy@whobela.com` | Privacy / data protection contact |
-| `[Company Legal Entity Name]` | Registered legal entity name — not yet determined |
-| `[Company Registration Number]` | Business registration number — not yet determined |
-| `[Company Registered Address]` | Registered business address — not yet determined |
-| `[Governing Jurisdiction]` | Country/state of governing law — not yet determined |
-
-Do not publish these documents to production without filling in the bracketed items above.
-A lawyer should review this package before it is treated as binding, especially given the
-dating/relationship context, GDPR exposure, and international user base.
+A lawyer should review the published package before it is treated as binding, especially
+given the dating/relationship context, GDPR exposure, and international user base.
 
 ## Documents
 

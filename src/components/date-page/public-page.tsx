@@ -30,6 +30,7 @@ export async function PublicDatePage({ username }: { username: string }) {
       isOwner={isOwner}
       homeUrl={siteUrl(BADGE_URL)}
       ctaUrl={siteUrl(CTA_URL)}
+      username={username}
     />
   );
 }

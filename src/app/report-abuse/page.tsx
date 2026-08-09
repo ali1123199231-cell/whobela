@@ -19,14 +19,21 @@ export default function ReportAbusePage() {
       <h2>How to Report</h2>
       <ul>
         <li>
-          Use the in-product &ldquo;Report&rdquo; option where available, attaching the
-          relevant link or screenshot;
+          <strong>From the page itself.</strong> Every invitation page has a{" "}
+          <strong>Report</strong> control in the bottom corner. You don&apos;t need an account,
+          you don&apos;t need to have answered the invitation, and you can report anonymously —
+          your email is optional and only used if you want a reply;
         </li>
         <li>
-          Or email <a href="mailto:support@whobela.com">support@whobela.com</a> with a
-          description of the issue, the link involved, and any supporting screenshots.
+          <strong>By email.</strong> Write to{" "}
+          <a href="mailto:support@whobela.com">support@whobela.com</a> with a description of the
+          issue, the link involved, and any supporting screenshots.
         </li>
       </ul>
+      <p>
+        Reports involving someone under 18 are read ahead of everything else — see our{" "}
+        <Link href="/legal/child-safety">Child Safety Standards</Link>.
+      </p>
 
       <h2>What Happens Next</h2>
       <p>

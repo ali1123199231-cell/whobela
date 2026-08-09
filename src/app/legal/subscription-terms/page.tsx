@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Subscription Terms — whobela",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function SubscriptionTermsPage() {
   return (
-    <LegalPage title="Subscription Terms" updated="[Insert Date]">
+    <LegalPage title="Subscription Terms" updated={LEGAL.lastUpdated}>
       <p>
         <strong>Whobela is free.</strong> There are no paid plans, no subscriptions, and nothing
         to buy. This page supplements our <Link href="/legal/terms">Terms &amp; Conditions</Link>.

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Data Processing Agreement — whobela",
@@ -9,10 +10,11 @@ export const metadata: Metadata = {
 
 export default function DpaPage() {
   return (
-    <LegalPage title="Data Processing Agreement (DPA)" updated="[Insert Date]">
+    <LegalPage title="Data Processing Agreement (DPA)" updated={LEGAL.lastUpdated}>
       <p>
         This Data Processing Agreement (&ldquo;<strong>DPA</strong>&rdquo;) forms part of the
-        agreement between Whobela and any business or organizational customer
+        agreement between {LEGAL.operatorName}, trading as Whobela, and any business or
+        organizational customer
         (&ldquo;<strong>Customer</strong>&rdquo;) that uses Whobela in a way that involves
         Whobela processing personal data on the Customer&apos;s behalf, to the extent required
         by the GDPR or equivalent data protection law. Where Whobela is acting as controller
@@ -53,11 +55,15 @@ export default function DpaPage() {
 
       <h2>5. Subprocessors</h2>
       <p>
-        Whobela uses the following categories of subprocessors to provide the Service: hosting
-        providers, payment processors (Stripe, PayPal), storage providers, analytics
-        providers, and email delivery providers. Whobela ensures subprocessors are bound by
-        data protection obligations consistent with this DPA, and will make reasonable efforts
-        to notify Customers of material changes to subprocessors where required by law.
+        Whobela uses the following subprocessors to provide the Service: <strong>Hetzner</strong>{" "}
+        (hosting and storage, Germany), <strong>Cloudflare</strong> (traffic routing and TLS),
+        <strong> Resend</strong> (email delivery), and the browser push services operated by{" "}
+        <strong>Google, Apple and Mozilla</strong> (notification delivery).{" "}
+        <strong>Stripe</strong> and <strong>PayPal</strong> historically processed subscription
+        payments; no new payments are processed. Whobela uses no analytics or advertising
+        subprocessor. Whobela ensures subprocessors are bound by data protection obligations
+        consistent with this DPA, and will make reasonable efforts to notify Customers of
+        material changes to subprocessors where required by law.
       </p>
 
       <h2>6. Data Subject Requests</h2>

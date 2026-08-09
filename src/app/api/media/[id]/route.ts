@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import { prisma } from "@/lib/prisma";
-import { resolveMediaPath } from "@/lib/media";
+import { resolveMediaPath, deleteMediaFile } from "@/lib/media";
 import { getSession } from "@/lib/auth";
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -40,6 +40,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!media || media.userId !== session.userId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+  // File first, then the row: if the unlink fails the row survives, so the photo
+  // stays reachable and retryable rather than becoming an unreferenced file that
+  // nothing knows how to clean up.
+  await deleteMediaFile(media.path);
   await prisma.media.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }

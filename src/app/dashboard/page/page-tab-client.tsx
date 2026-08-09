@@ -59,6 +59,22 @@ export function PageTabClient({
     }
   }
 
+  async function handleUnpublish() {
+    // Confirmed because the recipient may already be holding the link, and the
+    // page going dark is something they'd notice — but it is reversible, so a
+    // plain confirm is enough weight.
+    if (!confirm("Take your page offline? The link will stop working until you publish again. Your responses are kept.")) {
+      return;
+    }
+    setPublishing(true);
+    const res = await fetch("/api/page/publish", { method: "DELETE" });
+    setPublishing(false);
+    if (res.ok) {
+      const data = await res.json();
+      setStatus(data.datePage.status);
+    }
+  }
+
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -121,6 +137,15 @@ export function PageTabClient({
               className="rounded-full bg-rose-500 px-4 py-1.5 font-semibold text-white disabled:opacity-60"
             >
               {publishing ? "Publishing..." : "Publish"}
+            </button>
+          )}
+          {status === "PUBLISHED" && (
+            <button
+              onClick={handleUnpublish}
+              disabled={publishing}
+              className="rounded-full border border-rose-200 px-4 py-1.5 font-medium text-rose-600 transition hover:bg-rose-50 disabled:opacity-60"
+            >
+              {publishing ? "Working..." : "Take offline"}
             </button>
           )}
           <label className="flex items-center gap-1.5 font-medium text-rose-700">

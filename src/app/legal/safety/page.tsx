@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Safety Policy — whobela",
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function SafetyPage() {
   return (
-    <LegalPage title="Safety Policy" updated="[Insert Date]">
+    <LegalPage title="Safety Policy" updated={LEGAL.lastUpdated}>
       <p>
         Whobela is a tool for creating and sharing romantic invitations — meeting new people
         always carries some personal risk, whether arranged online or offline. This page
@@ -33,9 +34,10 @@ export default function SafetyPage() {
 
       <h2>3. Public Sharing</h2>
       <ul>
-        <li>Remember that an invitation page link can potentially be shared further by anyone who receives it, unless you&apos;ve restricted access using available privacy settings;</li>
-        <li>Only include information on a page that you&apos;re comfortable being seen by people beyond your intended recipient;</li>
-        <li>Review your privacy settings before sending a link, especially if the page contains personal photos or details.</li>
+        <li>Your page lives at a public address built from your username, such as <strong>yourname.whobela.com</strong>. It is not password-protected and the address is easy to guess, so treat it as public rather than private;</li>
+        <li>Anyone who receives the link can pass it on, and we cannot stop that;</li>
+        <li>Only include information — and especially photos — that you would be comfortable seeing beyond your intended recipient;</li>
+        <li>You can take your page offline at any time with <strong>Take offline</strong> in your dashboard — the link stops working straight away, and you keep the responses you&apos;ve had.</li>
       </ul>
 
       <h2>4. Online Interactions</h2>
@@ -51,8 +53,9 @@ export default function SafetyPage() {
         behavior that makes you feel unsafe, report it immediately:
       </p>
       <ul>
-        <li>Use the in-product reporting tool where available;</li>
-        <li>Email <a href="mailto:support@whobela.com">support@whobela.com</a> with details and any relevant screenshots or links;</li>
+        <li>Use the <strong>Report</strong> control on any invitation page. You do not need an account and you can report anonymously;</li>
+        <li>Or email <a href={`mailto:${LEGAL.supportEmail}`}>{LEGAL.supportEmail}</a> with details and any relevant screenshots or links;</li>
+        <li>Reports involving someone under 18 are read ahead of everything else;</li>
         <li>If you are in immediate danger, contact local emergency services before contacting us.</li>
       </ul>
 

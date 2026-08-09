@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { reportConversion } from "@/lib/gtag";
 import { readAttribution } from "@/lib/attribution";
 
 function slugify(name: string) {
@@ -26,6 +25,11 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Terms §1 requires everyone here to be 18 or over, and the Privacy Policy
+  // says we don't knowingly collect a minor's data. Neither claim was ever put
+  // to the person signing up, which made both unverifiable assertions about
+  // someone we'd never asked. This is the minimum that makes them true.
+  const [isAdult, setIsAdult] = useState(false);
 
   const [checkedUsername, setCheckedUsername] = useState<string | null>(null);
   const [checkedAvailable, setCheckedAvailable] = useState<boolean | null>(null);
@@ -68,6 +72,10 @@ export default function SignupPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isAdult) {
+      setError("Please confirm you're 18 or over to create an account");
+      return;
+    }
     setError(null);
     setLoading(true);
     const res = await fetch("/api/auth/signup", {
@@ -81,7 +89,6 @@ export default function SignupPage() {
       setError(data.error ?? "Something went wrong");
       return;
     }
-    reportConversion("AW-18015500784/SVoYCIqh57McEPDzuo5D");
     router.push("/dashboard");
   }
 
@@ -157,14 +164,28 @@ export default function SignupPage() {
 
             {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
 
-            <p className="mt-3 text-xs text-rose-500">
+            <label className="mt-4 flex cursor-pointer items-start gap-2 text-xs text-rose-600">
+              <input
+                type="checkbox"
+                checked={isAdult}
+                onChange={(e) => setIsAdult(e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-none accent-rose-500"
+              />
+              <span>I confirm I&apos;m 18 or over</span>
+            </label>
+
+            <p className="mt-2 text-xs text-rose-500">
               By creating an account, you agree to our{" "}
               <Link href="/legal/terms" className="font-medium text-rose-600 underline">
                 Terms
-              </Link>{" "}
-              &{" "}
+              </Link>
+              ,{" "}
               <Link href="/legal/community-guidelines" className="font-medium text-rose-600 underline">
                 Community Guidelines
+              </Link>{" "}
+              and{" "}
+              <Link href="/legal/privacy" className="font-medium text-rose-600 underline">
+                Privacy Policy
               </Link>
               .
             </p>

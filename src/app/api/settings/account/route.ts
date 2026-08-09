@@ -3,6 +3,7 @@ import { getSession, clearSessionCookie } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { deleteAccountSchema } from "@/lib/validation";
 import { cancelSubscriptionAtProvider } from "@/lib/billing";
+import { deleteAllUserMedia } from "@/lib/media";
 
 export async function DELETE(request: Request) {
   const session = await getSession();
@@ -35,6 +36,12 @@ export async function DELETE(request: Request) {
       );
     }
   }
+
+  // Photos before the user row. Deleting the user cascades the media rows away,
+  // and once those are gone nothing records where the files live — so doing this
+  // second would strand every photo in the uploads volume permanently. This also
+  // covers recipient photos, which have no owner to cascade from.
+  await deleteAllUserMedia(session.userId);
 
   await prisma.user.delete({ where: { id: session.userId } });
   await clearSessionCookie();

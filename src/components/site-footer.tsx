@@ -40,6 +40,7 @@ const columns = [
     links: [
       { href: "/legal/community-guidelines", label: "Community Guidelines" },
       { href: "/legal/safety", label: "Safety Policy" },
+      { href: "/legal/child-safety", label: "Child Safety Standards" },
       { href: "/legal/content-removal", label: "Content Removal Policy" },
       { href: "/report-abuse", label: "Report Abuse" },
     ],

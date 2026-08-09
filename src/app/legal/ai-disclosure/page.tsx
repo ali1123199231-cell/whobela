@@ -1,67 +1,83 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "AI / Automation Disclosure — whobela",
-  description: "Where and how whobela uses automated systems.",
+  description: "Whobela uses no AI and no automated decision-making. What little is automated, and what isn't.",
 };
 
 export default function AiDisclosurePage() {
   return (
-    <LegalPage title="AI / Automation Disclosure" updated="[Insert Date]">
+    <LegalPage title="AI / Automation Disclosure" updated={LEGAL.lastUpdated}>
       <p>
-        Whobela uses automated systems in limited parts of the Service. This page explains
-        where and how, so you have a clear picture of what is automated and what is not.
+        <strong>Whobela does not use artificial intelligence.</strong> There is no language
+        model, no recommendation engine, no profiling, and no automated decision-making
+        anywhere in the Service. This page exists to say so plainly, and to describe the
+        ordinary automation that does exist.
       </p>
 
-      <h2>1. Personalization</h2>
-      <p>
-        We may use automated logic to suggest page layouts, design options, or content prompts
-        based on the information you provide, to help you build your invitation page more
-        quickly. These are suggestions only — you control the final content and design of your
-        page.
-      </p>
-
-      <h2>2. Recommendations</h2>
-      <p>
-        Where Whobela surfaces recommendations (for example, template or feature suggestions),
-        these are generated using automated rules or models based on your usage and
-        preferences, and are not a substitute for your own judgment.
-      </p>
-
-      <h2>3. Analytics</h2>
-      <p>
-        We use automated analytics tools to understand aggregate usage patterns, such as page
-        views and feature engagement, in order to improve the product. This processing does
-        not involve automated decisions that produce legal effects or otherwise significantly
-        affect you.
-      </p>
-
-      <h2>4. Automated Features</h2>
-      <p>Certain operational features are automated, including:</p>
+      <h2>1. What Is Automated</h2>
       <ul>
-        <li>Email notifications triggered by account or booking activity;</li>
-        <li>Spam and abuse detection signals used to flag potentially violating content for review;</li>
-        <li>Image processing (such as resizing or formatting) applied to uploaded photos.</li>
+        <li>
+          <strong>Emails.</strong> Account emails (verification, password reset) and booking
+          emails (someone answered your invitation) are sent automatically when the event that
+          triggers them happens.
+        </li>
+        <li>
+          <strong>Push notifications.</strong> If you turn them on, the same events are also
+          pushed to your browser.
+        </li>
+        <li>
+          <strong>Rate limiting and lockouts.</strong> Repeated failed logins temporarily lock
+          an account, and some endpoints limit how often they can be called. These are fixed
+          rules protecting the Service, not judgments about you.
+        </li>
       </ul>
+      <p>That is the complete list.</p>
+
+      <h2>2. What Is Not Automated</h2>
+      <ul>
+        <li>
+          <strong>Content suggestions.</strong> The templates, date ideas, and question
+          prompts on Whobela are written by hand and shown to everyone alike. Nothing is
+          generated for you or selected based on your behaviour.
+        </li>
+        <li>
+          <strong>Moderation.</strong> We do not run automated content scanning or abuse
+          detection. Reports are read and acted on by a person — see our{" "}
+          <a href="/legal/content-removal">Content Removal Policy</a>.
+        </li>
+        <li>
+          <strong>Your photos.</strong> Uploaded images are stored exactly as you sent them.
+          They are not resized, re-encoded, analysed, or scanned for content, and no facial
+          recognition or other biometric processing is applied to them.
+        </li>
+        <li>
+          <strong>Analytics.</strong> We run none. We do not measure how you use the product
+          beyond the operational logs any web server keeps.
+        </li>
+      </ul>
+
+      <h2>3. No Automated Decisions About You</h2>
       <p>
-        Where automated abuse-detection signals are used, decisions that affect your account
-        (such as suspension) involve human review before being finalized, except in cases of
-        clear, high-confidence policy violations where immediate action is necessary to
-        protect users.
+        Whobela makes no decisions about you by automated means — including the decisions
+        described in Article 22 of the GDPR, which produce legal effects or similarly
+        significantly affect a person. Account suspensions and content removals are decided by
+        a person, and you can contest one by writing to us.
       </p>
 
-      <h2>5. No Fully Automated Profiling Decisions</h2>
+      <h2>4. If This Changes</h2>
       <p>
-        Whobela does not use fully automated processing to make decisions about you that
-        produce legal effects or similarly significant effects without the possibility of
-        human review, as described under GDPR Article 22.
+        If we ever introduce AI-assisted features, we will update this page before they go
+        live and explain what the system does, what it processes, and how to opt out where the
+        law requires it.
       </p>
 
-      <h2>6. Contact</h2>
+      <h2>5. Contact</h2>
       <p>
-        Questions about our use of automation can be sent to{" "}
-        <a href="mailto:privacy@whobela.com">privacy@whobela.com</a>.
+        Questions about automation can be sent to{" "}
+        <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a>.
       </p>
     </LegalPage>
   );

@@ -98,6 +98,28 @@ export function BookerStep({ onContinue }: { onContinue: (info: BookerInfo) => v
       >
         Confirm
       </button>
+
+      {/*
+        The person filling this in never made an account and never saw the
+        terms — they were sent a link. Until now they handed over a name, a
+        phone number and a social handle with nothing on screen saying who
+        receives it or how to get it back. GDPR Art. 13 wants this at the point
+        of collection, which is here, not on a page they'd have to go looking
+        for. Kept to two lines so it informs without souring the moment.
+      */}
+      <p className="max-w-xs text-[11px] leading-relaxed text-rose-400">
+        Your answer and contact details go to the person who invited you, so they can reach
+        you. They&apos;re stored by whobela.com on their behalf — read the{" "}
+        <a
+          href="https://whobela.com/legal/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-rose-500"
+        >
+          privacy policy
+        </a>{" "}
+        or email privacy@whobela.com to have them deleted.
+      </p>
     </form>
   );
 }

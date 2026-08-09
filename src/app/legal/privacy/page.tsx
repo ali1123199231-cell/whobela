@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — whobela",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy Policy" updated="[Insert Date]">
+    <LegalPage title="Privacy Policy" updated={LEGAL.lastUpdated}>
       <p>
         This Privacy Policy explains how Whobela (&ldquo;<strong>we</strong>,&rdquo;
         &ldquo;<strong>us</strong>,&rdquo; &ldquo;<strong>our</strong>&rdquo;) collects, uses,
@@ -19,10 +20,11 @@ export default function PrivacyPage() {
         Whobela.
       </p>
       <p>
-        Whobela is operated by [Company Legal Entity Name]. For the purposes of the EU/UK
-        General Data Protection Regulation (&ldquo;<strong>GDPR</strong>&rdquo;), Whobela acts
-        as the data controller for the personal data described below, unless stated
-        otherwise.
+        Whobela is operated by {LEGAL.operatorName}, a sole trader based at{" "}
+        {LEGAL.operatorAddress}, {LEGAL.governingLaw}. For the purposes of the EU/UK General
+        Data Protection Regulation (&ldquo;<strong>GDPR</strong>&rdquo;), that person is the
+        data controller for the personal data described below, and can be reached at{" "}
+        <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a>.
       </p>
 
       <h2>1. Information We Collect</h2>
@@ -36,19 +38,52 @@ export default function PrivacyPage() {
         Name, profile photos, interests, social links, preferences, and any other information
         you choose to add to your profile or invitation page.
       </p>
-      <h3>1.3 Booking data</h3>
+      <h3>1.3 Booking data (information about Visitors)</h3>
       <p>
-        Information collected through your invitation pages and scheduling features, such as
-        date and time selections, Visitor contact details (e.g., name, phone number, email),
-        and messages or responses exchanged through the platform.
+        When a Visitor responds to an invitation page, we store what they enter: their name,
+        the contact details they choose to give (Instagram, WhatsApp, phone, or email), an
+        optional message, the date and time they picked, and any preferences they selected.
+      </p>
+      <p>
+        If you are a Visitor: this information is collected so the person who sent you the
+        invitation can reply to you, and it is visible to them in their dashboard. The
+        controller named above is responsible for it, you have all the rights described in
+        Section 8, and you can ask us to delete it at any time by emailing{" "}
+        <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a> — you do not need an
+        account to make that request.
       </p>
       <h3>1.4 Technical data</h3>
       <p>
-        IP address, browser type, device information, operating system, pages visited,
-        timestamps, and similar analytics data collected automatically when you or a Visitor
-        use the Service.
+        Whobela does not run analytics, advertising, or tracking software, and does not build
+        a profile of what you do on the site. Our servers keep short-lived operational logs in
+        the ordinary course of running a web service, and we set a cookie to keep you signed
+        in. We do not store your IP address against your account, and we do not track you
+        across other websites.
       </p>
-      <h3>1.5 Payment data</h3>
+      <h3>1.5 Push notifications</h3>
+      <p>
+        If you turn on notifications, your browser gives us an address for that specific
+        browser or device, plus two keys used to encrypt messages to it. We store these so we
+        can tell you when someone answers your invitation. Delivery goes through the push
+        service run by your browser&apos;s maker — Google, Apple, or Mozilla — which
+        necessarily receives that address. Turning notifications off in your browser, or
+        deleting your account, removes it.
+      </p>
+      <h3>1.6 Signup country and acquisition source</h3>
+      <p>
+        When you create an account we record the <strong>country</strong> your request came
+        from, derived at our content-delivery network from your IP address. We store the
+        two-letter country code only. We do <strong>not</strong> store the IP address it was
+        derived from, and we do <strong>not</strong> record your city, region, or any more
+        precise location. We also record how you first reached the site (the referring
+        website and any campaign parameters in the link you followed).
+      </p>
+      <p>
+        We use this solely to understand, in aggregate, which countries and channels our
+        users come from. It is never used to target you individually and is never shared
+        with advertisers.
+      </p>
+      <h3>1.7 Payment data</h3>
       <p>
         Whobela is free and we do not collect payment data. When we previously offered a paid
         subscription, payments were processed by Stripe and/or PayPal; we never stored full
@@ -61,7 +96,7 @@ export default function PrivacyPage() {
       <ul>
         <li>Provide and operate the Service, including creating, hosting, and delivering invitation pages;</li>
         <li>Process bookings, responses, and contact details submitted through your pages;</li>
-        <li>Send transactional notifications (e.g., booking confirmations, security alerts, billing receipts);</li>
+        <li>Send transactional notifications by email and — if you turn them on — browser push (e.g., someone answered your invitation, security alerts);</li>
         <li>Maintain, secure, and improve the Service, including diagnosing technical issues;</li>
         <li>Detect, investigate, and prevent fraud, abuse, and violations of our <Link href="/legal/terms">Terms &amp; Conditions</Link>;</li>
         <li>Communicate with you about your account, updates to our policies, or — where you have consented — product news.</li>
@@ -82,12 +117,16 @@ export default function PrivacyPage() {
         to operate the Service:
       </p>
       <ul>
-        <li><strong>Hosting providers</strong> — to store and serve the platform and your data;</li>
-        <li><strong>Payment processors</strong> (Stripe, PayPal) — historically, to process subscription payments; no new payments are processed;</li>
-        <li><strong>Storage providers</strong> — to store uploaded media such as profile photos;</li>
-        <li><strong>Analytics providers</strong> — to understand product usage and improve the Service;</li>
-        <li><strong>Email providers</strong> — to send account, booking, and transactional notifications.</li>
+        <li><strong>Hetzner</strong> — the German hosting provider whose server runs Whobela and stores its database and uploaded photos;</li>
+        <li><strong>Cloudflare</strong> — sits in front of the site to route traffic, provide HTTPS, and pass on the two-letter country code described in Section 1.6;</li>
+        <li><strong>Resend</strong> — sends account and booking emails;</li>
+        <li><strong>Browser push services</strong> (Google, Apple, Mozilla) — deliver notifications to your device, as described in Section 1.5;</li>
+        <li><strong>Stripe and PayPal</strong> — historically processed subscription payments. No new payments are processed and no payment details are collected.</li>
       </ul>
+      <p>
+        We do not use analytics or advertising services, and no third party receives your data
+        for its own marketing purposes.
+      </p>
       <p>
         We do not sell your personal data. We may disclose information if required by law,
         court order, or governmental request, or to protect the rights, safety, or property of
@@ -96,19 +135,25 @@ export default function PrivacyPage() {
 
       <h2>5. User-Generated Content and Public Pages</h2>
       <p>
-        Invitation pages you create are designed to be shared with specific Visitors via a
-        unique link. Information you choose to include on a page — such as photos, your name,
-        or interests — will be visible to anyone who accesses that link, unless you use
-        available privacy controls to restrict access. You should only include information on
-        a public page that you are comfortable sharing with the people you send the link to.
+        Your invitation page is published at a public address built from your username, such
+        as <strong>yourname.whobela.com</strong>. Anything you put on it — photos, your name,
+        your interests — is visible to anyone who opens that address. The address is
+        predictable rather than secret, and there is currently no password or visibility
+        setting available. We ask search engines not to index invitation pages, but that is a
+        request rather than an access control.
+      </p>
+      <p>
+        Only put things on a page that you are comfortable being seen by someone other than
+        the person you send it to. See <Link href="/legal/terms">Terms &amp; Conditions</Link>{" "}
+        §5.
       </p>
 
       <h2>6. Cookies</h2>
       <p>
-        We use cookies and similar technologies as described in our{" "}
-        <Link href="/legal/cookies">Cookie Policy</Link>, including essential cookies
-        (required for the Service to function), analytics cookies (to understand usage), and
-        preference cookies (to remember your settings).
+        We use one essential cookie, to keep you signed in, and your browser&apos;s local
+        storage to remember how you first reached the site. We do not use analytics or
+        advertising cookies. See our <Link href="/legal/cookies">Cookie Policy</Link> for
+        detail.
       </p>
 
       <h2>7. Data Retention</h2>

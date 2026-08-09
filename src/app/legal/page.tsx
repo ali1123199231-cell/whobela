@@ -14,6 +14,7 @@ const documents = [
   { href: "/legal/refund-policy", label: "Refund Policy" },
   { href: "/legal/community-guidelines", label: "Community Guidelines" },
   { href: "/legal/safety", label: "Safety Policy" },
+  { href: "/legal/child-safety", label: "Child Safety Standards" },
   { href: "/legal/content-removal", label: "Content Removal Policy" },
   { href: "/legal/dpa", label: "Data Processing Agreement (DPA)" },
   { href: "/legal/subscription-terms", label: "Subscription Terms" },

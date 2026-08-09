@@ -30,7 +30,17 @@ or responses exchanged through the platform.
 IP address, browser type, device information, operating system, pages visited, timestamps,
 and similar analytics data collected automatically when you or a Visitor use the Service.
 
-### 1.5 Payment data
+### 1.5 Signup country and acquisition source
+When you create an account we record the **country** your request originated from, derived
+at our content-delivery network from your IP address. We store the two-letter country code
+only. We do **not** store the IP address it was derived from, and we do **not** record your
+city, region, or any more precise location. We also record how you first reached the site
+(referring website and any campaign parameters in the link you followed).
+
+We use this solely to understand, in aggregate, which countries and channels our users come
+from. It is never used to target you individually and is never shared with advertisers.
+
+### 1.6 Payment data
 Payments are processed by Stripe and/or PayPal. We do not store full payment card numbers or
 bank details. We may retain limited billing metadata (such as subscription status, billing
 history, and the last four digits of a payment card, where provided by our payment

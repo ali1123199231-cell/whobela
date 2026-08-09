@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword, createSessionToken, setSessionCookie } from "@/lib/auth";
 import { signupSchema } from "@/lib/validation";
 import { sendVerificationCode } from "@/lib/email-verification";
+import { countryFromRequest } from "@/lib/geo";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -35,6 +36,10 @@ export async function POST(request: Request) {
     );
   }
 
+  // Server-side, from the Cloudflare edge header - never from the request
+  // body, which the client controls.
+  const signupCountry = countryFromRequest(request);
+
   const passwordHash = await hashPassword(password);
   const user = await prisma.user.create({
     data: {
@@ -49,6 +54,7 @@ export async function POST(request: Request) {
       utmTerm,
       utmContent,
       gclid,
+      signupCountry,
       profile: { create: { firstName } },
       datePage: { create: { name: "My date page" } },
     },

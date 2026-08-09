@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import nodemailer, { type Transporter } from "nodemailer";
 import { render } from "@react-email/render";
 import { getConfig, getConfigMany, CONFIG_KEYS, getRootOrigin } from "@/lib/config";
+import { LEGAL } from "@/lib/legal";
 import { VerificationCodeEmail } from "@/emails/verification-code";
 import { PasswordResetEmail } from "@/emails/password-reset";
 import { NewResponseEmail } from "@/emails/new-response";
@@ -91,6 +92,72 @@ export async function sendPasswordResetEmail(to: string, { code }: { code: strin
  * Fire-and-forget: notification email failures shouldn't break the recipient's
  * response submission, so this never throws — it just logs.
  */
+/** Minimal HTML escape — report text is attacker-controlled free text. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Notifies support that an abuse report was filed.
+ *
+ * Internal-only, so it is deliberately plain: no branding, nothing to click
+ * through, everything needed to triage in the body. The report row is written
+ * before this is called, so a delivery failure loses the notification, never the
+ * report.
+ */
+export async function sendReportEmail({
+  reportId,
+  reason,
+  details,
+  pageUsername,
+  reporterEmail,
+}: {
+  reportId: string;
+  reason: string;
+  details: string | null;
+  pageUsername: string | null;
+  reporterEmail: string | null;
+}) {
+  // Child-safety reports are marked in the subject so they are visible as such
+  // in a mailbox list, without needing to be opened first.
+  const urgent = reason === "CHILD_SAFETY";
+  const subject = urgent
+    ? `[CHILD SAFETY] whobela report — ${pageUsername ?? "unknown page"}`
+    : `whobela report (${reason}) — ${pageUsername ?? "unknown page"}`;
+
+  const rows: [string, string][] = [
+    ["Reason", reason],
+    ["Page", pageUsername ? `https://${pageUsername}.whobela.com` : "not identified"],
+    ["Reporter", reporterEmail || "anonymous"],
+    ["Report ID", reportId],
+    ["Details", details || "(none given)"],
+  ];
+
+  try {
+    await deliver({
+      to: LEGAL.supportEmail,
+      subject,
+      html: `<div style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.6">
+        ${urgent ? '<p style="font-weight:700;color:#a8202f">Child safety report — review before anything else.</p>' : ""}
+        <table cellpadding="6" style="border-collapse:collapse">
+          ${rows
+            .map(
+              ([k, v]) =>
+                `<tr><td style="vertical-align:top;color:#666">${k}</td><td style="white-space:pre-wrap">${escapeHtml(v)}</td></tr>`
+            )
+            .join("")}
+        </table>
+      </div>`,
+    });
+  } catch (err) {
+    console.error("[email] Failed to send abuse-report notification", err);
+  }
+}
+
 export async function sendNewResponseEmail(
   to: string,
   { recipientName, datePageName }: { recipientName: string; datePageName: string }

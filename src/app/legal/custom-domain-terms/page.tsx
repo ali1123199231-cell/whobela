@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Custom Domain Terms — whobela",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function CustomDomainTermsPage() {
   return (
-    <LegalPage title="Custom Domain Terms" updated="[Insert Date]">
+    <LegalPage title="Custom Domain Terms" updated={LEGAL.lastUpdated}>
       <p>
         These Custom Domain Terms apply if you connect a domain you own to your Whobela page.
         Connecting a custom domain is free and available to every account. They supplement our{" "}
