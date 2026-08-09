@@ -9,6 +9,10 @@ export const passwordSchema = z
   .regex(/\d/, "Use at least 8 characters with a letter, a number, and a symbol")
   .regex(/[^A-Za-z0-9]/, "Use at least 8 characters with a letter, a number, and a symbol");
 
+// First-touch acquisition attribution — best-effort, client-supplied, so keep
+// it lenient: strip to a safe length and never fail signup over a bad value.
+const attributionField = z.string().max(500).nullish().catch(null);
+
 export const signupSchema = z.object({
   email: z.string().email(),
   password: passwordSchema,
@@ -17,6 +21,14 @@ export const signupSchema = z.object({
     .toLowerCase()
     .regex(usernamePattern, "Use 3-32 lowercase letters, numbers, or hyphens"),
   firstName: z.string().min(1).max(60),
+  signupReferrer: attributionField,
+  signupLandingPath: attributionField,
+  utmSource: attributionField,
+  utmMedium: attributionField,
+  utmCampaign: attributionField,
+  utmTerm: attributionField,
+  utmContent: attributionField,
+  gclid: attributionField,
 });
 
 export const loginSchema = z.object({

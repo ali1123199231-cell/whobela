@@ -30,6 +30,17 @@ model User {
   // Bumped on password change/reset so existing session JWTs (which embed the
   // version at sign-time) stop validating everywhere at once.
   tokenVersion               Int       @default(0)
+
+  // First-touch acquisition attribution, captured client-side at signup.
+  signupReferrer     String?
+  signupLandingPath  String?
+  utmSource          String?
+  utmMedium          String?
+  utmCampaign        String?
+  utmTerm            String?
+  utmContent         String?
+  gclid              String?
+
   createdAt                  DateTime  @default(now())
   updatedAt                  DateTime  @updatedAt
 

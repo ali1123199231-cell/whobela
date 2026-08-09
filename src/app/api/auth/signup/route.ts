@@ -10,7 +10,20 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
   }
-  const { email, password, username, firstName } = parsed.data;
+  const {
+    email,
+    password,
+    username,
+    firstName,
+    signupReferrer,
+    signupLandingPath,
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmTerm,
+    utmContent,
+    gclid,
+  } = parsed.data;
 
   const existing = await prisma.user.findFirst({
     where: { OR: [{ email }, { username }] },
@@ -28,6 +41,14 @@ export async function POST(request: Request) {
       email,
       username,
       passwordHash,
+      signupReferrer,
+      signupLandingPath,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmTerm,
+      utmContent,
+      gclid,
       profile: { create: { firstName } },
       datePage: { create: { name: "My date page" } },
     },

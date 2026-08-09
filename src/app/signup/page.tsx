@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { reportConversion } from "@/lib/gtag";
+import { readAttribution } from "@/lib/attribution";
 
 function slugify(name: string) {
   const base = name
@@ -72,7 +73,7 @@ export default function SignupPage() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, username, email, password }),
+      body: JSON.stringify({ firstName, username, email, password, ...readAttribution() }),
     });
     setLoading(false);
     if (!res.ok) {
