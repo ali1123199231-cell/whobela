@@ -72,8 +72,7 @@ export async function createPaypalSubscription(userId: string, returnUrl: string
 
 // PayPal has no "cancel at period end" concept — /cancel stops the
 // subscription outright — so read next_billing_time first and store it as
-// currentPeriodEnd, letting the page stay live through the period the user
-// already paid for (see getLiveStatus in date-page.ts).
+// currentPeriodEnd, recording what the user had already paid through.
 export async function getPaypalPeriodEnd(subscriptionId: string) {
   const token = await getAccessToken();
   if (!token) return null;

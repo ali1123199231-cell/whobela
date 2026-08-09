@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { DatePageView, type DatePageConfigPatch } from "@/components/date-page";
 import { PhotoCropper } from "@/components/photo-cropper";
 import { PhotoManager } from "@/components/date-page/photo-manager";
-import { getTrialEndsAt, formatCountdown } from "@/lib/date-page-status";
 import type { DatePage } from "@/generated/prisma/client";
 
 type Photo = { id: string; url: string };
@@ -12,15 +11,11 @@ type Photo = { id: string; url: string };
 export function PageTabClient({
   datePage,
   photos: initialPhotos,
-  subscriptionActive,
   liveUrl,
-  initialNow,
 }: {
   datePage: DatePage;
   photos: Photo[];
-  subscriptionActive: boolean;
   liveUrl: string;
-  initialNow: number;
 }) {
   const [config, setConfig] = useState({
     theme: datePage.theme,
@@ -33,23 +28,13 @@ export function PageTabClient({
     confirmationConfig: datePage.confirmationConfig,
   });
   const [status, setStatus] = useState(datePage.status);
-  const [firstPublishedAt, setFirstPublishedAt] = useState(datePage.firstPublishedAt);
   const [photos, setPhotos] = useState(initialPhotos);
   const [managingPhotos, setManagingPhotos] = useState(false);
   const [photosBusy, setPhotosBusy] = useState(false);
   const [editMode, setEditMode] = useState(datePage.status === "DRAFT");
   const [publishing, setPublishing] = useState(false);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
-  // Seeded from the server's clock (via prop) rather than Date.now(), to
-  // avoid a hydration mismatch if this loads while already published.
-  const [now, setNow] = useState(initialNow);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (status !== "PUBLISHED" || subscriptionActive) return;
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, [status, subscriptionActive]);
 
   function handleConfigUpdate(patch: DatePageConfigPatch) {
     setConfig((prev) => ({ ...prev, ...patch }));
@@ -70,7 +55,6 @@ export function PageTabClient({
     if (res.ok) {
       const data = await res.json();
       setStatus(data.datePage.status);
-      setFirstPublishedAt(data.datePage.firstPublishedAt ? new Date(data.datePage.firstPublishedAt) : null);
       setEditMode(false);
     }
   }
@@ -117,36 +101,19 @@ export function PageTabClient({
     setPhotosBusy(false);
   }
 
-  const trialEndsAt = getTrialEndsAt(firstPublishedAt);
-  const trialMsLeft = trialEndsAt ? trialEndsAt.getTime() - now : null;
-  const isLive = status === "PUBLISHED" && (subscriptionActive || (trialMsLeft !== null && trialMsLeft > 0));
-
   return (
     <div className="flex min-h-screen flex-col">
       <div className="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-2 border-b border-rose-100 bg-white px-4 py-2.5 text-sm">
         <div>
           {status === "DRAFT" && <span className="font-medium text-rose-400">Draft — not live yet</span>}
-          {status === "PUBLISHED" && subscriptionActive && (
+          {status === "PUBLISHED" && (
             <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-rose-600 underline">
               Live: {liveUrl}
             </a>
           )}
-          {status === "PUBLISHED" && !subscriptionActive && isLive && trialMsLeft !== null && (
-            <span className="font-medium text-rose-600">
-              Live — free preview ends in {formatCountdown(trialMsLeft)}
-            </span>
-          )}
-          {status === "PUBLISHED" && !subscriptionActive && !isLive && (
-            <span className="font-medium text-rose-400">Your free preview window ended</span>
-          )}
         </div>
 
         <div className="flex items-center gap-3">
-          {status === "PUBLISHED" && !subscriptionActive && (
-            <a href="/dashboard/billing" className="text-rose-500 underline">
-              {isLive ? "Subscribe to keep it running" : "Subscribe to go live again"}
-            </a>
-          )}
           {status === "DRAFT" && (
             <button
               onClick={handlePublish}

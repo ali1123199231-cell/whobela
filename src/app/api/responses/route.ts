@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { responseSubmitSchema } from "@/lib/validation";
-import { getLiveStatus, isBillingBypassed, isSubscriptionEntitled } from "@/lib/date-page";
+import { getLiveStatus } from "@/lib/date-page";
 import { sendNewResponseEmail } from "@/lib/email";
-import { isShowcaseAccount } from "@/lib/showcase";
 import { DEFAULT_SCHEDULING_CONFIG, isValidBookingSlot, withDefaults } from "@/lib/date-page-defaults";
 
 export async function POST(request: Request) {
@@ -20,13 +19,9 @@ export async function POST(request: Request) {
 
   const datePage = await prisma.datePage.findUnique({
     where: { id: datePageId },
-    include: { user: { include: { subscription: true } } },
+    include: { user: true },
   });
-  const subscriptionActive =
-    (await isBillingBypassed()) ||
-    isSubscriptionEntitled(datePage?.user.subscription) ||
-    (datePage ? await isShowcaseAccount(datePage.user.username) : false);
-  if (!datePage || !getLiveStatus(datePage, subscriptionActive).isLive) {
+  if (!datePage || !getLiveStatus(datePage).isLive) {
     return NextResponse.json({ error: "This invitation is no longer available" }, { status: 404 });
   }
 

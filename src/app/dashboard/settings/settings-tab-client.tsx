@@ -1,16 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useState } from "react";
 import { LogoutButton } from "../logout-button";
-
-type Subscription = {
-  status: string;
-  provider: string;
-  cancelAtPeriodEnd: boolean;
-  entitled: boolean;
-} | null;
 
 export function SettingsTabClient({
   email: initialEmail,
@@ -19,9 +11,6 @@ export function SettingsTabClient({
   customDomain: initialDomain,
   customDomainVerified: initialVerified,
   serverIp,
-  subscription,
-  bypassBilling,
-  isShowcase,
 }: {
   email: string;
   emailNotificationsEnabled: boolean;
@@ -29,13 +18,8 @@ export function SettingsTabClient({
   customDomain: string | null;
   customDomainVerified: boolean;
   serverIp: string | null;
-  subscription: Subscription;
-  bypassBilling: boolean;
-  isShowcase: boolean;
 }) {
   const router = useRouter();
-  const isActive = Boolean(subscription?.entitled);
-  const isCancelled = Boolean(subscription?.cancelAtPeriodEnd) || subscription?.status === "CANCELLED";
 
   // Notifications
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(initialNotifications);
@@ -179,37 +163,10 @@ export function SettingsTabClient({
     <div className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="text-2xl font-semibold text-rose-950">Settings</h1>
 
-      <Section title="Subscription">
-        {isActive && isCancelled ? (
-          <p className="text-sm text-rose-700/70">
-            Your subscription is cancelled — you won&apos;t be charged again.
-          </p>
-        ) : isActive ? (
-          <p className="font-semibold text-rose-600">You are subscribed ❤️ via {subscription?.provider}</p>
-        ) : isShowcase ? (
-          <p className="text-sm text-rose-700/70">This is the showcase account — it stays live without subscribing.</p>
-        ) : bypassBilling ? (
-          <p className="text-sm text-rose-700/70">
-            Billing bypass is enabled for local development — your page stays live without subscribing.
-          </p>
-        ) : (
-          <p className="text-sm text-rose-700/70">
-            Your page stays live for <strong>30 minutes</strong> after you first publish it. Subscribe for{" "}
-            <strong>$2.99/month</strong> to keep it running after that.
-          </p>
-        )}
-        <Link
-          href="/dashboard/billing"
-          className="mt-1 w-fit rounded-full border border-rose-300 bg-white px-4 py-1.5 text-sm font-semibold text-rose-600"
-        >
-          Manage billing
-        </Link>
-      </Section>
-
       <Section title="Custom domain">
         <p className="text-sm text-rose-700/70">
           Use your own domain (e.g. <code>yourname.com</code>) instead of{" "}
-          <code>{username}.whobela.com</code>. Included with your subscription.
+          <code>{username}.whobela.com</code>. Free, like everything else.
         </p>
 
         {!customDomain ? (
