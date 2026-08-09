@@ -29,6 +29,11 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./conf.d:/etc/caddy/conf.d:ro
+      # Static sites served directly by Caddy rather than proxied to an app —
+      # currently ocroon.com (see conf.d/ocroon.caddy, which roots at
+      # /srv/sites/ocroon.com). Without this the vhost answers 404 for
+      # everything, so keep it whenever this file is copied to the server.
+      - /opt/sites:/srv/sites:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:
