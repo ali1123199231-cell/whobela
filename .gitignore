@@ -51,3 +51,6 @@ next-env.d.ts
 # Mirror of the prod uploads volume, pulled by scripts/sync-prod-to-local.sh
 # (real users' photos — never commit)
 /uploads-prod
+
+# Playwright MCP scratch output (snapshots, console logs, screenshots)
+/.playwright-mcp

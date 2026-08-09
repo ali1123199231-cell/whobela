@@ -1,9 +1,0 @@
-- generic [ref=f51e2]:
-  - generic [ref=f51e4]:
-    - button "🌸" [ref=f51e5]
-    - heading "🌸 Will you go on a date with me? 🌸" [level=1] [ref=f51e6]
-    - generic [ref=f51e7]:
-      - button "YES ❤️" [ref=f51e9]
-      - button "No 😢" [ref=f51e11]
-  - link "Made with 🌸 whobela" [ref=f51e12] [cursor=pointer]:
-    - /url: https://whobela.com/?utm_source=whobela&utm_medium=page_badge&utm_campaign=viral_loop
