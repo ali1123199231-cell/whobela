@@ -21,5 +21,9 @@ INSERT INTO system_config (id, key, value, "updatedAt") VALUES
   (gen_random_uuid(), 'PAYPAL_LIVE_WEBHOOK_ID', '', now()),
   (gen_random_uuid(), 'PAYPAL_LIVE_PLAN_ID', '', now()),
   (gen_random_uuid(), 'RESEND_API_KEY', '', now()),
-  (gen_random_uuid(), 'RESEND_FROM_EMAIL', '', now())
+  (gen_random_uuid(), 'RESEND_FROM_EMAIL', '', now()),
+  -- Generate once with `node scripts/generate-vapid-keys.mjs` and paste in.
+  -- Changing them later invalidates every push subscription already granted.
+  (gen_random_uuid(), 'VAPID_PUBLIC_KEY', '', now()),
+  (gen_random_uuid(), 'VAPID_PRIVATE_KEY', '', now())
 ON CONFLICT (key) DO NOTHING;

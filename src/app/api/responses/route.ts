@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { responseSubmitSchema } from "@/lib/validation";
 import { getLiveStatus } from "@/lib/date-page";
 import { sendNewResponseEmail } from "@/lib/email";
+import { sendPushToUser } from "@/lib/push";
 import { DEFAULT_SCHEDULING_CONFIG, isValidBookingSlot, withDefaults } from "@/lib/date-page-defaults";
 
 export async function POST(request: Request) {
@@ -51,6 +52,15 @@ export async function POST(request: Request) {
       datePageName: datePage.name,
     });
   }
+
+  // Not gated on emailNotificationsEnabled: agreeing to notifications in the
+  // browser is its own explicit opt-in, and someone who muted email may well
+  // have muted it *because* they'd rather be told this way.
+  void sendPushToUser(datePage.userId, {
+    title: `${data.recipientName} said yes 💌`,
+    body: `${data.chosenDate} at ${data.chosenTime}. Tap to see their details.`,
+    url: "/dashboard/inbox",
+  });
 
   return NextResponse.json({ ok: true, id: response.id });
 }

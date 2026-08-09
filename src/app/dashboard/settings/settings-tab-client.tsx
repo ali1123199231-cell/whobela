@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LogoutButton } from "../logout-button";
+import { PushToggle } from "@/components/push-toggle";
+import { InstallApp } from "@/components/install-app";
 
 export function SettingsTabClient({
   email: initialEmail,
@@ -249,6 +251,17 @@ export function SettingsTabClient({
           />
           Email me when someone says yes
         </label>
+        <div className="text-sm font-medium">
+          <PushToggle />
+        </div>
+      </Section>
+
+      <Section title="Get the app">
+        <p className="text-sm text-rose-700/70">
+          Install Whobela on your phone to open your page in one tap and get answers the moment
+          they arrive.
+        </p>
+        <InstallApp />
       </Section>
 
       <Section title="Account security">

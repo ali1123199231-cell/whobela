@@ -63,4 +63,9 @@ export const CONFIG_KEYS = {
 
   RESEND_API_KEY: "RESEND_API_KEY",
   RESEND_FROM_EMAIL: "RESEND_FROM_EMAIL",
+
+  // Web-push signing keys. Rotating these silently invalidates every existing
+  // browser subscription, so once set they should be left alone.
+  VAPID_PUBLIC_KEY: "VAPID_PUBLIC_KEY",
+  VAPID_PRIVATE_KEY: "VAPID_PRIVATE_KEY",
 } as const;

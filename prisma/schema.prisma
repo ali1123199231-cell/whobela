@@ -49,8 +49,26 @@ model User {
   datePage           DatePage?
   subscription       Subscription?
   billingClickEvents BillingClickEvent[]
+  pushSubscriptions  PushSubscription[]
 
   @@map("users")
+}
+
+// A single browser that has agreed to receive notifications. One user can have
+// several — phone, laptop, a second browser — and each is independent, so they
+// are stored per-endpoint rather than per-user and pruned individually when the
+// push service reports one has expired.
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
 
 model Profile {
