@@ -19,27 +19,35 @@ whobela.com {
 }
 
 # www.whobela.com textually matches the *.whobela.com wildcard pattern below,
-# which makes Caddy's automatic-HTTPS qualification defer it to on-demand
-# instead of eagerly provisioning it (silently — no cert is ever obtained and
-# the static-policy path doesn't request one during the handshake either,
-# producing a bare TLS handshake failure). Explicitly marking it on_demand
-# here routes it through the same already-working on-demand obtain flow that
-# *.whobela.com uses (the shared ask-router approves it, since
-# www.whobela.com matches its whobela.com route).
+# so Caddy defers it rather than eagerly provisioning a cert of its own. It is
+# covered by the wildcard, and asking for the wildcard by the same DNS-01
+# challenge here is what gets it served.
 www.whobela.com {
     tls {
-        on_demand
+        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
     }
 
     import whobela_common
 }
 
-# Per-user pages: {username}.whobela.com — on-demand TLS, validated by the
-# shared ask-router against whobela-app's /api/public/check-domain.
-# Prerequisite: wildcard A record *.whobela.com → server IP (already set).
+# Per-user pages: {username}.whobela.com, served from a single *.whobela.com
+# wildcard certificate obtained over DNS-01.
+#
+# These were previously issued on demand, one Let's Encrypt certificate per
+# user at the moment of first visit. That cost the recipient of an invitation
+# 5–7 seconds on the most important pageview in the product — the first time
+# they open the link they were sent — and spent one certificate per user
+# against the 50-per-week-per-registered-domain ceiling, which growth would
+# eventually walk into. One wildcard covers every user, is provisioned before
+# anyone asks for it, and is renewed once rather than per subdomain.
+#
+# Prerequisites: wildcard A record *.whobela.com → server IP, and a Cloudflare
+# token in the environment (see ../docker-compose.yml). Custom domains are
+# unaffected — they still arrive through the :443 catch-all and are still
+# validated on demand by the ask-router.
 *.whobela.com {
     tls {
-        on_demand
+        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
     }
 
     @isSubdomain not host whobela.com www.whobela.com

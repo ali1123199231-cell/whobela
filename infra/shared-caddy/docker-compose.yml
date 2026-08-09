@@ -10,9 +10,18 @@ services:
       - shared-edge-net
 
   caddy:
-    image: caddy:2-alpine
+    # Built locally rather than pulled: the stock image has no DNS providers,
+    # and *.whobela.com's certificate can only be issued over DNS-01. See
+    # ./Dockerfile.
+    build: .
+    image: shared-caddy-cloudflare:2
     container_name: shared-caddy
     restart: unless-stopped
+    environment:
+      # Cloudflare token restricted to Zone:DNS:Edit on the whobela.com zone,
+      # used only to write the _acme-challenge TXT record. Lives in
+      # /opt/shared-caddy/.env on the server; never committed.
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:?set CLOUDFLARE_API_TOKEN in /opt/shared-caddy/.env}
     ports:
       - "80:80"
       - "443:443"
