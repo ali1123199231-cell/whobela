@@ -44,3 +44,10 @@ next-env.d.ts
 
 # local file uploads (dev/test data; real uploads live in a Docker volume in prod)
 /uploads
+
+# Local prod data dumps (PII — never commit)
+/prod-users.md
+
+# Mirror of the prod uploads volume, pulled by scripts/sync-prod-to-local.sh
+# (real users' photos — never commit)
+/uploads-prod
