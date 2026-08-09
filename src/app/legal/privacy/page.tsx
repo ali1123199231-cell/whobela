@@ -50,10 +50,10 @@ export default function PrivacyPage() {
       </p>
       <h3>1.5 Payment data</h3>
       <p>
-        Payments are processed by Stripe and/or PayPal. We do not store full payment card
-        numbers or bank details. We may retain limited billing metadata (such as subscription
-        status, billing history, and the last four digits of a payment card, where provided by
-        our payment processor) for accounting and support purposes.
+        Whobela is free and we do not collect payment data. When we previously offered a paid
+        subscription, payments were processed by Stripe and/or PayPal; we never stored full
+        payment card numbers or bank details, and we retain only limited historical billing
+        metadata (such as subscription status and history) for accounting and support purposes.
       </p>
 
       <h2>2. How We Use Information</h2>
@@ -83,7 +83,7 @@ export default function PrivacyPage() {
       </p>
       <ul>
         <li><strong>Hosting providers</strong> — to store and serve the platform and your data;</li>
-        <li><strong>Payment processors</strong> (Stripe, PayPal) — to process subscription payments;</li>
+        <li><strong>Payment processors</strong> (Stripe, PayPal) — historically, to process subscription payments; no new payments are processed;</li>
         <li><strong>Storage providers</strong> — to store uploaded media such as profile photos;</li>
         <li><strong>Analytics providers</strong> — to understand product usage and improve the Service;</li>
         <li><strong>Email providers</strong> — to send account, booking, and transactional notifications.</li>

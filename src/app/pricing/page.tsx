@@ -1,40 +1,38 @@
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { JsonLd, softwareApplicationSchema, breadcrumbSchema } from "@/lib/seo/jsonld";
+import { JsonLd, softwareApplicationSchema, breadcrumbSchema, faqSchema } from "@/lib/seo/jsonld";
 
 export const metadata = buildMetadata({
-  title: "Whobela Pricing — Start Free | Whobela",
+  title: "Whobela Pricing — Free, Forever | Whobela",
   description:
-    "Create your first date invitation for free. Upgrade for premium themes, music, custom domains, and more.",
+    "Whobela is free. Create your date invitation, share the link, connect your own domain, and keep the page online for as long as you like. No card, no plan, no expiry.",
   path: "/pricing",
 });
 
-const TIERS = [
+const INCLUDED = [
+  "Create a personalized invitation",
+  "Every theme, no locked ones",
+  "Photo gallery and custom questions",
+  "Share your private link",
+  "Your page stays online — no countdown, no expiry",
+  "Let them respond and pick a date",
+  "Responses delivered to your inbox",
+  "Connect your own custom domain",
+];
+
+const FAQ = [
   {
-    name: "Free",
-    tagline: "Everything you need to ask someone out.",
-    features: [
-      "Create a personalized invitation",
-      "Share one private link",
-      "Let them respond and schedule",
-      "Core themes",
-    ],
-    cta: "Start free",
-    highlight: false,
+    q: "Is Whobela really free?",
+    a: "Yes. Every feature is free, including custom domains. We don't ask for a card and there is no paid plan to upgrade to.",
   },
   {
-    name: "Premium",
-    tagline: "Make it unforgettable.",
-    features: [
-      "All free features",
-      "Premium themes & music",
-      "Photo gallery & custom questions",
-      "Connect a custom domain",
-      "Priority support",
-    ],
-    cta: "Go Premium",
-    highlight: true,
+    q: "How long does my page stay online?",
+    a: "For as long as you keep it published. There is no trial window — unpublish it yourself whenever you're done.",
+  },
+  {
+    q: "Will you start charging later?",
+    a: "If we ever add paid features they'll be additions alongside what's free today. We won't put a page you've already published behind a payment.",
   },
 ];
 
@@ -43,48 +41,52 @@ export default function PricingPage() {
     <MarketingShell>
       <header className="mx-auto max-w-3xl px-6 pb-2 pt-12 text-center">
         <h1 className="text-3xl font-semibold tracking-tight text-rose-950 sm:text-4xl">
-          Simple pricing
+          Free. All of it.
         </h1>
         <p className="mt-5 text-lg text-rose-700/90">
-          Start free. Upgrade when you want to make it extra special.
+          Asking someone out is nerve-racking enough without a paywall in the middle of it. There
+          is no plan to pick and no card to enter.
         </p>
       </header>
 
-      <div className="mx-auto grid max-w-3xl gap-5 px-6 py-10 sm:grid-cols-2">
-        {TIERS.map((tier) => (
-          <div
-            key={tier.name}
-            className={`rounded-3xl border p-7 ${
-              tier.highlight
-                ? "border-rose-300 bg-white shadow-xl shadow-rose-100"
-                : "border-rose-100 bg-white"
-            }`}
+      <div className="mx-auto max-w-xl px-6 py-10">
+        <div className="rounded-3xl border border-rose-300 bg-white p-8 shadow-xl shadow-rose-100">
+          <p className="text-5xl font-semibold text-rose-950">$0</p>
+          <p className="mt-2 text-rose-700/80">Everything, for everyone.</p>
+
+          <ul className="mt-6 space-y-2">
+            {INCLUDED.map((f) => (
+              <li key={f} className="flex gap-2 text-rose-800/90">
+                <span className="text-rose-400">♥</span>
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+
+          <Link
+            href="/signup"
+            className="mt-8 block rounded-full bg-rose-500 px-6 py-3 text-center text-base font-semibold text-white shadow-lg shadow-rose-200 transition hover:bg-rose-600"
           >
-            <h2 className="text-xl font-semibold text-rose-950">{tier.name}</h2>
-            <p className="mt-1 text-rose-700/80">{tier.tagline}</p>
-            <ul className="mt-5 space-y-2">
-              {tier.features.map((f) => (
-                <li key={f} className="flex gap-2 text-rose-800/90">
-                  <span className="text-rose-400">♥</span>
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/signup"
-              className={`mt-7 block rounded-full px-6 py-3 text-center text-base font-semibold transition ${
-                tier.highlight
-                  ? "bg-rose-500 text-white shadow-lg shadow-rose-200 hover:bg-rose-600"
-                  : "border border-rose-200 text-rose-600 hover:bg-rose-50"
-              }`}
-            >
-              {tier.cta}
-            </Link>
-          </div>
-        ))}
+            Create your invitation
+          </Link>
+          <p className="mt-3 text-center text-sm text-rose-700/60">No credit card required.</p>
+        </div>
       </div>
 
+      <section className="mx-auto max-w-xl px-6 pb-14">
+        <h2 className="text-xl font-semibold text-rose-950">Questions</h2>
+        <dl className="mt-4 space-y-5">
+          {FAQ.map((item) => (
+            <div key={item.q}>
+              <dt className="font-medium text-rose-900">{item.q}</dt>
+              <dd className="mt-1 text-rose-700/80">{item.a}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
       <JsonLd data={softwareApplicationSchema()} />
+      <JsonLd data={faqSchema(FAQ)} />
       <JsonLd
         data={breadcrumbSchema([
           { name: "Home", path: "/" },

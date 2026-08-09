@@ -48,6 +48,15 @@ export default function CookiesPage() {
         Remember choices you&apos;ve made, such as display settings or dismissed
         notifications, so you don&apos;t have to set them again on each visit.
       </p>
+      <h3>Similar technologies (local storage)</h3>
+      <p>
+        Alongside cookies we use your browser&apos;s local storage to record, on your first
+        visit, how you arrived at Whobela — the referring site and any campaign parameters in
+        the link you followed, together with the first page you landed on. If you later create
+        an account, that record is attached to it so we can understand which channels bring
+        people to the Service. It holds no information about you personally, is never sold or
+        shared with advertisers, and clearing your browser storage removes it.
+      </p>
 
       <h2>4. Third-Party Cookies</h2>
       <p>

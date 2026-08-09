@@ -11,8 +11,8 @@ export default function CustomDomainTermsPage() {
   return (
     <LegalPage title="Custom Domain Terms" updated="[Insert Date]">
       <p>
-        These Custom Domain Terms apply if you connect a domain you own to your Whobela page
-        as part of an eligible paid plan, and supplement our{" "}
+        These Custom Domain Terms apply if you connect a domain you own to your Whobela page.
+        Connecting a custom domain is free and available to every account. They supplement our{" "}
         <Link href="/legal/terms">Terms &amp; Conditions</Link> and{" "}
         <Link href="/legal/subscription-terms">Subscription Terms</Link>.
       </p>
@@ -56,7 +56,6 @@ export default function CustomDomainTermsPage() {
       <ul>
         <li>The domain or the content served through it violates our policies or applicable law;</li>
         <li>We detect abuse, fraud, or security risks associated with the domain;</li>
-        <li>Your subscription plan no longer includes custom domain access;</li>
         <li>Continued connection creates technical, legal, or security risk to the Service.</li>
       </ul>
 

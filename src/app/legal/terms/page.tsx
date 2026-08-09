@@ -166,38 +166,27 @@ export default function TermsPage() {
       </p>
 
       <h2>8. Payments</h2>
-      <h3>8.1 Subscriptions</h3>
+      <h3>8.1 The Service is free</h3>
       <p>
-        Certain features of Whobela require a paid subscription. By subscribing, you authorize
-        us (through our payment processors) to charge your chosen payment method on a
-        recurring basis according to the billing cycle you select.
+        Whobela is provided free of charge. There is no subscription, we do not collect payment
+        details, and we will not bill you. See our{" "}
+        <Link href="/legal/subscription-terms">Subscription Terms</Link>.
       </p>
-      <h3>8.2 Payment processors</h3>
+      <h3>8.2 Historical charges</h3>
       <p>
-        Payments are processed by Stripe and/or PayPal. We do not store your full payment
-        card details. Your use of these payment methods is also subject to Stripe&apos;s and
-        PayPal&apos;s own terms and privacy policies.
-      </p>
-      <h3>8.3 Renewal and cancellation</h3>
-      <p>
-        Subscriptions renew automatically at the end of each billing period unless cancelled
-        before the renewal date. You may cancel at any time through your account settings;
-        cancellation takes effect at the end of the current billing period unless otherwise
-        stated.
-      </p>
-      <h3>8.4 Refunds</h3>
-      <p>
-        Refunds are handled in accordance with our{" "}
-        <Link href="/legal/refund-policy">Refund Policy</Link>.
+        Whobela previously offered a paid subscription processed by Stripe and/or PayPal. Those
+        subscriptions have been discontinued and cancelled, and any charge made under them is
+        handled in accordance with our <Link href="/legal/refund-policy">Refund Policy</Link>.
+        We never stored full payment card details.
       </p>
 
-      <h2>9. Premium Features</h2>
+      <h2>9. Features</h2>
       <p>
-        Premium subscriptions may unlock features such as publishing additional pages,
-        connecting a custom domain, removing Whobela branding from your pages, advanced
-        analytics, or other paid features described at the time of purchase. Availability of
-        specific features may change as the product evolves; we will make reasonable efforts
-        to communicate material changes to paid features in advance.
+        All features — including connecting a custom domain and keeping a published page online
+        — are available to every account at no cost. Availability of specific features may
+        change as the product evolves; we will make reasonable efforts to communicate material
+        changes in advance, and will not place a page you have already published behind a
+        payment.
       </p>
 
       <h2>10. Intellectual Property</h2>

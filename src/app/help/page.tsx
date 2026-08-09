@@ -25,10 +25,8 @@ export default function HelpCenterPage() {
           submitted through your page in your dashboard.
         </li>
         <li>
-          <strong>Billing &amp; subscriptions</strong> — Manage your plan, payment method, and
-          billing history in account settings. See our{" "}
-          <Link href="/legal/subscription-terms">Subscription Terms</Link> and{" "}
-          <Link href="/legal/refund-policy">Refund Policy</Link>.
+          <strong>Billing</strong> — There isn&apos;t any. Whobela is free and there is no plan to
+          manage; see our <Link href="/legal/subscription-terms">Subscription Terms</Link>.
         </li>
         <li>
           <strong>Privacy &amp; safety</strong> — Review our{" "}

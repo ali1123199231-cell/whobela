@@ -54,7 +54,7 @@ export const MONEY_PAGES: Record<string, SeoPage> = {
       },
     ],
     faq: [
-      { q: "Is it free to create a date invitation?", a: "Yes — you can create and share your first invitation for free. Premium themes and features are available if you want more." },
+      { q: "Is it free to create a date invitation?", a: "Yes — completely. Every theme and feature is included, your page stays online with no expiry, and no card is required." },
       { q: "How long does it take?", a: "About three minutes from a blank page to a shareable link." },
       { q: "Can I change it after sending?", a: "Yes. You can edit your invitation any time; the same link stays live." },
       { q: "Is my invitation private?", a: "Completely. Only the person you send the link to can open it, and their responses are visible only to you." },
