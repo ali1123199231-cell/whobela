@@ -1,0 +1,42 @@
+- generic [active] [ref=f50e1]:
+  - generic [ref=f50e2]:
+    - generic [ref=f50e4]:
+      - generic [ref=f50e5]:
+        - generic [ref=f50e6]: Draft — not live yet
+        - generic [ref=f50e7]:
+          - button "Publish" [ref=f50e8]
+          - generic [ref=f50e9]:
+            - checkbox "Edit mode" [checked] [ref=f50e10]
+            - text: Edit mode
+      - generic [ref=f50e13]:
+        - button "🌸 📷" [ref=f50e14]:
+          - text: 🌸
+          - generic [ref=f50e15]: 📷
+        - button "Choose a theme" [ref=f50e17]: 🎨
+        - textbox [ref=f50e18]: 🌸 Will you go on a date with me? 🌸
+        - textbox "Add a subtitle (optional)" [ref=f50e19]
+        - generic [ref=f50e20]:
+          - generic [ref=f50e21]:
+            - button "YES ❤️" [ref=f50e22]
+            - button "Edit Yes button" [ref=f50e24]: ✏️
+          - generic [ref=f50e25]:
+            - button "No 😢" [ref=f50e26]
+            - button "Edit No button settings" [ref=f50e28]: ⚙️
+    - navigation [ref=f50e29]:
+      - link "💌 Page" [ref=f50e30] [cursor=pointer]:
+        - /url: /dashboard/page
+        - generic [ref=f50e31]: 💌
+        - text: Page
+      - link "❤️ Inbox" [ref=f50e32] [cursor=pointer]:
+        - /url: /dashboard/inbox
+        - generic [ref=f50e33]: ❤️
+        - text: Inbox
+      - link "🙂 Profile" [ref=f50e34] [cursor=pointer]:
+        - /url: /dashboard/profile
+        - generic [ref=f50e35]: 🙂
+        - text: Profile
+      - link "⚙️ Settings" [ref=f50e36] [cursor=pointer]:
+        - /url: /dashboard/settings
+        - generic [ref=f50e37]: ⚙️
+        - text: Settings
+  - alert [ref=f50e38]

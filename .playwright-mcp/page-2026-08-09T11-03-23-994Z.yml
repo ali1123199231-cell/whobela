@@ -1,0 +1,137 @@
+- generic [active] [ref=f48e1]:
+  - main [ref=f48e2]:
+    - generic [ref=f48e3]:
+      - generic [ref=f48e4]: 🌸 whobela
+      - heading "Create a magical way to ask someone out." [level=1] [ref=f48e5]
+      - paragraph [ref=f48e6]: Create a cute interactive date invitation. Share your personal link. Let someone special choose when to meet.
+      - generic [ref=f48e7]:
+        - link "Create your date page" [ref=f48e8] [cursor=pointer]:
+          - /url: /signup
+        - link "See an example" [ref=f48e9] [cursor=pointer]:
+          - /url: "#demo"
+    - paragraph [ref=f48e10]: Try it yourself — this is a real, live demo 👇
+    - generic [ref=f48e13]:
+      - button "🌸" [ref=f48e14]
+      - heading "🌸 Will you go on a date with me? 🌸" [level=1] [ref=f48e15]
+      - generic [ref=f48e16]:
+        - button "YES ❤️" [ref=f48e18]
+        - button "No 😢" [ref=f48e20]
+    - generic [ref=f48e21]:
+      - heading "The beautiful way to ask someone out" [level=2] [ref=f48e22]
+      - paragraph [ref=f48e23]: Whobela is a tool for creating personalized date-invitation pages — not a dating app. It's for asking someone you already know, in a way they'll never forget.
+      - list [ref=f48e24]:
+        - listitem [ref=f48e25]:
+          - link "Create a date invitation →" [ref=f48e26] [cursor=pointer]:
+            - /url: /create-date-invitation
+        - listitem [ref=f48e27]:
+          - link "How to ask someone out online →" [ref=f48e28] [cursor=pointer]:
+            - /url: /ask-someone-out-online
+        - listitem [ref=f48e29]:
+          - link "Cute ways to ask someone out →" [ref=f48e30] [cursor=pointer]:
+            - /url: /cute-ways-to-ask-someone-out
+        - listitem [ref=f48e31]:
+          - link "Browse invitation templates →" [ref=f48e32] [cursor=pointer]:
+            - /url: /templates
+        - listitem [ref=f48e33]:
+          - link "How to ask your crush out →" [ref=f48e34] [cursor=pointer]:
+            - /url: /for/crush
+        - listitem [ref=f48e35]:
+          - link "Whobela vs. dating apps →" [ref=f48e36] [cursor=pointer]:
+            - /url: /vs/dating-apps
+  - contentinfo [ref=f48e37]:
+    - generic [ref=f48e38]:
+      - generic [ref=f48e39]:
+        - generic [ref=f48e40]:
+          - heading "Explore" [level=2] [ref=f48e41]
+          - list [ref=f48e42]:
+            - listitem [ref=f48e43]:
+              - link "Create an invitation" [ref=f48e44] [cursor=pointer]:
+                - /url: /create-date-invitation
+            - listitem [ref=f48e45]:
+              - link "Templates" [ref=f48e46] [cursor=pointer]:
+                - /url: /templates
+            - listitem [ref=f48e47]:
+              - link "Date ideas" [ref=f48e48] [cursor=pointer]:
+                - /url: /date-ideas
+            - listitem [ref=f48e49]:
+              - link "Free tools" [ref=f48e50] [cursor=pointer]:
+                - /url: /tools
+            - listitem [ref=f48e51]:
+              - link "Blog" [ref=f48e52] [cursor=pointer]:
+                - /url: /blog
+            - listitem [ref=f48e53]:
+              - link "FAQ" [ref=f48e54] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=f48e55]:
+              - link "Pricing" [ref=f48e56] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=f48e57]:
+          - heading "Company" [level=2] [ref=f48e58]
+          - list [ref=f48e59]:
+            - listitem [ref=f48e60]:
+              - link "About" [ref=f48e61] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=f48e62]:
+              - link "Contact" [ref=f48e63] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=f48e64]:
+              - link "Help Center" [ref=f48e65] [cursor=pointer]:
+                - /url: /help
+        - generic [ref=f48e66]:
+          - heading "Legal" [level=2] [ref=f48e67]
+          - list [ref=f48e68]:
+            - listitem [ref=f48e69]:
+              - link "Terms & Conditions" [ref=f48e70] [cursor=pointer]:
+                - /url: /legal/terms
+            - listitem [ref=f48e71]:
+              - link "Privacy Policy" [ref=f48e72] [cursor=pointer]:
+                - /url: /legal/privacy
+            - listitem [ref=f48e73]:
+              - link "Cookie Policy" [ref=f48e74] [cursor=pointer]:
+                - /url: /legal/cookies
+            - listitem [ref=f48e75]:
+              - link "Refund Policy" [ref=f48e76] [cursor=pointer]:
+                - /url: /legal/refund-policy
+            - listitem [ref=f48e77]:
+              - link "Subscription Terms" [ref=f48e78] [cursor=pointer]:
+                - /url: /legal/subscription-terms
+            - listitem [ref=f48e79]:
+              - link "Custom Domain Terms" [ref=f48e80] [cursor=pointer]:
+                - /url: /legal/custom-domain-terms
+            - listitem [ref=f48e81]:
+              - link "Data Processing Agreement" [ref=f48e82] [cursor=pointer]:
+                - /url: /legal/dpa
+            - listitem [ref=f48e83]:
+              - link "AI / Automation Disclosure" [ref=f48e84] [cursor=pointer]:
+                - /url: /legal/ai-disclosure
+            - listitem [ref=f48e85]:
+              - link "Accessibility Statement" [ref=f48e86] [cursor=pointer]:
+                - /url: /legal/accessibility
+        - generic [ref=f48e87]:
+          - heading "Community & Safety" [level=2] [ref=f48e88]
+          - list [ref=f48e89]:
+            - listitem [ref=f48e90]:
+              - link "Community Guidelines" [ref=f48e91] [cursor=pointer]:
+                - /url: /legal/community-guidelines
+            - listitem [ref=f48e92]:
+              - link "Safety Policy" [ref=f48e93] [cursor=pointer]:
+                - /url: /legal/safety
+            - listitem [ref=f48e94]:
+              - link "Content Removal Policy" [ref=f48e95] [cursor=pointer]:
+                - /url: /legal/content-removal
+            - listitem [ref=f48e96]:
+              - link "Report Abuse" [ref=f48e97] [cursor=pointer]:
+                - /url: /report-abuse
+        - generic [ref=f48e98]:
+          - heading "Your Account" [level=2] [ref=f48e99]
+          - list [ref=f48e100]:
+            - listitem [ref=f48e101]:
+              - link "Privacy Settings" [ref=f48e102] [cursor=pointer]:
+                - /url: /privacy-settings
+            - listitem [ref=f48e103]:
+              - link "Delete Account" [ref=f48e104] [cursor=pointer]:
+                - /url: /delete-account
+      - generic [ref=f48e105]:
+        - paragraph [ref=f48e106]: © 2026 whobela.com. All rights reserved.
+        - link "All legal documents →" [ref=f48e107] [cursor=pointer]:
+          - /url: /legal

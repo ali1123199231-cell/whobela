@@ -15,6 +15,7 @@ export async function generateMetadata({
     return {
       title: "whobela — Create a magical way to ask someone out",
       robots: { index: false, follow: true },
+      manifest: null,
     };
   }
 
@@ -27,6 +28,12 @@ export async function generateMetadata({
     // results. The Open Graph image (opengraph-image.tsx) still works for
     // social/DM unfurls, which ignore the robots directive.
     robots: { index: false, follow: true },
+    // These are served from {username}.whobela.com, where the proxy rewrites
+    // every path to this route — so the root layout's manifest link would 404
+    // and log an error on the one page it matters most that nothing does.
+    // Suppressed rather than routed around: the recipient of an invitation is
+    // not who the installable app is for.
+    manifest: null,
   };
 }
 
