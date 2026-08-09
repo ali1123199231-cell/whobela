@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import { EditableText } from "./editable-text";
 import type { ConfirmationConfig } from "@/lib/date-page-defaults";
@@ -9,12 +8,15 @@ export function ConfirmationStep({
   time,
   editable = false,
   onChange,
+  homeUrl = "/",
 }: {
   config: ConfirmationConfig;
   date: string;
   time: string;
   editable?: boolean;
   onChange?: (patch: Partial<ConfirmationConfig>) => void;
+  /** Absolute link to the marketing site — see the CTA at the bottom. */
+  homeUrl?: string;
 }) {
   const friendlyDate = format(parseISO(date), "EEEE, MMMM d");
 
@@ -42,9 +44,16 @@ export function ConfirmationStep({
       {!editable && (
         <div className="mt-10 flex flex-col items-center gap-2 text-xs text-rose-400">
           <span>Created with whobela.com ❤️</span>
-          <Link href="/" className="font-medium text-rose-500 underline">
+          {/*
+            Absolute, because a live page is served from {username}.whobela.com
+            (and sometimes the owner's own domain) where "/" is this very
+            invitation — so a relative link sent the one person most likely to
+            sign up, at the one moment they're most likely to want to, straight
+            back to the page they'd just finished answering.
+          */}
+          <a href={homeUrl} className="font-medium text-rose-500 underline">
             Create your own date invitation
-          </Link>
+          </a>
         </div>
       )}
     </div>

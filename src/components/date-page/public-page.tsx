@@ -9,6 +9,12 @@ import { LiveDatePageView } from "./live-date-page-view";
 // number that says whether giving pages away is buying us growth.
 const BADGE_URL = "/?utm_source=whobela&utm_medium=page_badge&utm_campaign=viral_loop";
 
+// The CTA shown after someone has answered. Tagged apart from the badge
+// because the two are asked at completely different moments — one is a corner
+// mark on the page, the other is offered to somebody who has just said yes —
+// and knowing which one actually brings people back is worth the extra param.
+const CTA_URL = "/?utm_source=whobela&utm_medium=page_cta&utm_campaign=viral_loop";
+
 export async function PublicDatePage({ username }: { username: string }) {
   const result = await getLiveDatePageByUsername(username);
   if (result.state === "not-found") notFound();
@@ -23,6 +29,7 @@ export async function PublicDatePage({ username }: { username: string }) {
       photoUrls={result.photoMediaIds.map((id) => `/api/media/${id}`)}
       isOwner={isOwner}
       homeUrl={siteUrl(BADGE_URL)}
+      ctaUrl={siteUrl(CTA_URL)}
     />
   );
 }

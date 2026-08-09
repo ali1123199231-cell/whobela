@@ -69,6 +69,7 @@ export function DatePageView({
   photoUrls = [],
   onConfigUpdate,
   onPhotoTap,
+  homeUrl,
 }: {
   datePageId: string;
   mode: "live" | "edit" | "demo";
@@ -76,6 +77,8 @@ export function DatePageView({
   photoUrls?: string[];
   onConfigUpdate?: (patch: DatePageConfigPatch) => void;
   onPhotoTap?: () => void;
+  /** Absolute link home, for the CTA shown once a recipient has answered. */
+  homeUrl?: string;
 }) {
   const editable = mode === "edit";
   const isDemo = mode === "demo";
@@ -231,6 +234,7 @@ export function DatePageView({
           onChange={(patch) => onConfigUpdate?.({ confirmationConfig: { ...confirmationConfig, ...patch } })}
           date={schedule.date}
           time={schedule.time}
+          homeUrl={homeUrl}
         />
       )}
 

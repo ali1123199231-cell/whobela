@@ -9,6 +9,7 @@ export function LiveDatePageView({
   photoUrls,
   isOwner,
   homeUrl,
+  ctaUrl,
 }: {
   datePageId: string;
   config: DatePageConfigBundle;
@@ -16,6 +17,8 @@ export function LiveDatePageView({
   isOwner: boolean;
   /** Absolute, UTM-tagged link home — see the badge below. */
   homeUrl: string;
+  /** Same, tagged separately so the two surfaces can be told apart. */
+  ctaUrl: string;
 }) {
   return (
     <div className="relative">
@@ -27,7 +30,13 @@ export function LiveDatePageView({
           Edit your page
         </Link>
       )}
-      <DatePageView datePageId={datePageId} mode="live" config={config} photoUrls={photoUrls} />
+      <DatePageView
+        datePageId={datePageId}
+        mode="live"
+        config={config}
+        photoUrls={photoUrls}
+        homeUrl={ctaUrl}
+      />
       {/*
         The recipient of an invitation is the best prospect this product has —
         they're holding proof it works — and until now nothing on the page told
