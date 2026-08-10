@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { PlayBadge } from "@/components/play-badge";
+import { isAndroid } from "@/lib/app-store";
 
 // Chrome fires this instead of showing its own install UI once the page
 // qualifies; holding onto it lets us put the prompt behind a button of our own.
@@ -26,10 +28,21 @@ function useStandalone(): boolean {
   );
 }
 
+// The OS never changes mid-session, so there is nothing to subscribe to — this
+// is useSyncExternalStore purely for its server snapshot, which keeps the
+// server's HTML (no navigator, so "not Android") from disagreeing with the
+// client's first render.
+const NEVER_CHANGES = () => () => {};
+
+function useIsAndroid(): boolean {
+  return useSyncExternalStore(NEVER_CHANGES, isAndroid, () => false);
+}
+
 export function InstallApp() {
   const [promptEvent, setPromptEvent] = useState<InstallPromptEvent | null>(null);
   const [justInstalled, setJustInstalled] = useState(false);
   const standalone = useStandalone();
+  const android = useIsAndroid();
   const installed = standalone || justInstalled;
 
   useEffect(() => {
@@ -50,8 +63,27 @@ export function InstallApp() {
     };
   }, []);
 
+  // Standalone covers the Play build too: the Android app is a Trusted Web
+  // Activity rendering this page, so it reports standalone and correctly never
+  // offers to install the thing it already is.
   if (installed) {
     return <p className="text-sm text-rose-700/60">Whobela is installed on this device ✓</p>;
+  }
+
+  // Android goes to Play rather than the browser's own install prompt, even
+  // though that prompt works and is one tap shorter. A home-screen PWA can
+  // never be rated or ranked, so every install routed around the Store is a
+  // review the app cannot receive and a ranking signal Play never sees —
+  // which is the whole reason for publishing it there.
+  if (android) {
+    return (
+      <div className="flex flex-col gap-2">
+        <PlayBadge />
+        <p className="text-xs text-rose-700/50">
+          Ratings help other people find Whobela — if it worked for you, we&apos;d love one.
+        </p>
+      </div>
+    );
   }
 
   // No event means the browser won't install this — either it already did, or

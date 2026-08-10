@@ -1,0 +1,57 @@
+{
+  "packageId": "com.whobela.app",
+  "host": "whobela.com",
+  "name": "Whobela",
+  "launcherName": "Whobela",
+  "display": "standalone",
+  "themeColor": "#E11D48",
+  "themeColorDark": "#E11D48",
+  "navigationColor": "#FFF1F2",
+  "navigationColorDark": "#4C0519",
+  "navigationDividerColor": "#FFF1F2",
+  "navigationDividerColorDark": "#4C0519",
+  "backgroundColor": "#FFF1F2",
+  "enableNotifications": true,
+  "startUrl": "/create?source=twa",
+  "iconUrl": "http://127.0.0.1:3000/icon-512.png",
+  "maskableIconUrl": "http://127.0.0.1:3000/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "/home/x/E/IdeaProjects/whobela.com/android/keystore/upload-keystore.jks",
+    "alias": "whobela"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "New invitation",
+      "shortName": "New",
+      "url": "/create?source=shortcut",
+      "chosenIconUrl": "http://127.0.0.1:3000/icon-192.png"
+    },
+    {
+      "name": "Who answered",
+      "shortName": "Inbox",
+      "url": "/dashboard/inbox?source=shortcut",
+      "chosenIconUrl": "http://127.0.0.1:3000/icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://whobela.com/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://whobela.com/",
+  "minSdkVersion": 21,
+  "orientation": "portrait",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "displayOverride": [],
+  "appVersion": "1.0.0"
+}

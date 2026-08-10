@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { readAttribution } from "@/lib/attribution";
+import { applyDraftToAccount } from "@/lib/draft-page";
 
 function slugify(name: string) {
   const base = name
@@ -83,13 +84,20 @@ export default function SignupPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ firstName, username, email, password, ...readAttribution() }),
     });
-    setLoading(false);
     if (!res.ok) {
+      setLoading(false);
       const data = await res.json().catch(() => ({}));
       setError(data.error ?? "Something went wrong");
       return;
     }
-    router.push("/dashboard");
+
+    // Anyone arriving from /create built a page before they had an account to
+    // put it in. Replay it before navigating, so the editor they land on shows
+    // the invitation they just made rather than a fresh default one. Signup
+    // has already created an empty page, so there is nothing to overwrite.
+    const hadDraft = await applyDraftToAccount();
+    setLoading(false);
+    router.push(hadDraft ? "/dashboard/page" : "/dashboard");
   }
 
   return (

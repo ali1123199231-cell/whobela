@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PlayBadge } from "@/components/play-badge";
 
 const columns = [
   {
@@ -78,7 +79,20 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t border-rose-100 pt-6 text-sm text-rose-500/70 sm:flex-row sm:items-center sm:justify-between">
+        {/* Every marketing and SEO page renders this footer, so the badge rides
+            along on all of them — which is where the app's first installs, and
+            therefore its first ratings, have to come from. */}
+        <div className="mt-10 flex flex-col gap-3 border-t border-rose-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-rose-950">Whobela for Android</h2>
+            <p className="mt-1 text-sm text-rose-700/70">
+              Get answers the moment they arrive.
+            </p>
+          </div>
+          <PlayBadge />
+        </div>
+
+        <div className="mt-8 flex flex-col gap-2 border-t border-rose-100 pt-6 text-sm text-rose-500/70 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} whobela.com. All rights reserved.</p>
           <Link href="/legal" className="font-medium text-rose-600 hover:text-rose-700">
             All legal documents →

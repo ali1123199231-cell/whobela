@@ -54,3 +54,21 @@ next-env.d.ts
 
 # Playwright MCP scratch output (snapshots, console logs, screenshots)
 /.playwright-mcp
+
+# Android signing material. Losing the upload key is recoverable through Play
+# support only because Play App Signing holds the real distribution key —
+# committing it is not recoverable at all. Back these up off-machine instead.
+/android/keystore
+# Bubblewrap's generated Gradle project IS committed, even though `bubblewrap
+# update` can recreate it: update re-fetches the live web manifest and quietly
+# overwrites fields from it, so having the generated tree in git is what makes
+# such a change reviewable rather than invisible. Only the build outputs and
+# the toolchain are ignored.
+/android/node_modules
+/android/build
+/android/app/build
+/android/.gradle
+/android/*.apk
+/android/*.aab
+/android/*.idsig
+/android/*.log
