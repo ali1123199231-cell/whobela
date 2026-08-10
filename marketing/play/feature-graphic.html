@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1024px; height: 500px; overflow: hidden; }
+  body {
+    display: flex; align-items: center; gap: 56px;
+    /* Brand rose, matching the app's theme_color #e11d48 and background #fff1f2 */
+    background: linear-gradient(135deg, #e11d48 0%, #f43f5e 45%, #fb7185 100%);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    /* Play crops the edges on some surfaces, so everything sits well inside */
+    padding: 0 96px;
+    position: relative;
+  }
+  /* Soft depth so the flat gradient doesn't read as a placeholder */
+  body::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 78% 25%, rgba(255,255,255,.20), transparent 55%);
+  }
+  .mark {
+    flex: none; width: 190px; height: 190px; border-radius: 44px;
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.28);
+    display: grid; place-items: center;
+    box-shadow: 0 24px 60px rgba(76, 5, 25, .30);
+    position: relative; z-index: 1;
+  }
+  .mark svg { width: 108px; height: 108px; }
+  .copy { position: relative; z-index: 1; }
+  h1 {
+    font-size: 68px; line-height: 1.02; font-weight: 800;
+    color: #fff; letter-spacing: -1.8px;
+    text-shadow: 0 3px 18px rgba(76, 5, 25, .25);
+  }
+  p {
+    margin-top: 20px; font-size: 29px; line-height: 1.35;
+    color: rgba(255,255,255,.94); font-weight: 500; max-width: 560px;
+  }
+</style>
+<div class="mark">
+  <svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+    <path d="M12 21s-8.4-5.2-10.2-9.6C.5 8.1 2.3 4.6 5.7 4.1c2-.3 3.9.7 4.9 2.3l1.4 2 1.4-2c1-1.6 2.9-2.6 4.9-2.3 3.4.5 5.2 4 3.9 7.3C20.4 15.8 12 21 12 21z"/>
+  </svg>
+</div>
+<div class="copy">
+  <h1>Ask someone out,<br>beautifully.</h1>
+  <p>Build a date invitation page, share the link, and know the moment they say yes.</p>
+</div>

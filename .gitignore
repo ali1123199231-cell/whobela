@@ -52,8 +52,12 @@ next-env.d.ts
 # (real users' photos — never commit)
 /uploads-prod
 
-# Playwright MCP scratch output (snapshots, console logs, screenshots)
+# Playwright MCP scratch output (snapshots, console logs, screenshots).
+# Screenshots taken while driving a browser land in the repo root by default,
+# so ignore that shape too — a `git add -A` otherwise sweeps a session's worth
+# of console screenshots into a commit.
 /.playwright-mcp
+/*.png
 
 # Android signing material. Losing the upload key is recoverable through Play
 # support only because Play App Signing holds the real distribution key —
