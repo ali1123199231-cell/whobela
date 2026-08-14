@@ -2,57 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { canAskForPush, enablePush } from "@/lib/pwa";
+import { askingIsAllowed, recordDismissal } from "@/lib/push-ask-record";
 
 /*
  * Asks for notification permission at a moment when the answer is obviously
  * yes, rather than from a checkbox in Settings that nobody scrolls to.
  *
- * The browser gives us exactly one good shot at this: a dismissed prompt puts
- * the origin into `denied`, which is sticky and can only be undone from the
- * browser's own site settings — not from anything we render. So the rules here
- * are deliberately conservative. We ask only where the value is already
- * obvious, we never ask on a bare page load, and we stop asking for good after
- * two refusals.
+ * We ask only where the value is already obvious, never on a bare page load,
+ * and only while the local refusal history still allows it — see
+ * lib/push-ask-record for why that budget exists and how it's spent.
  */
-
-const ASK_RECORD_KEY = "whobela.push-ask";
-const MAX_ASKS = 2;
-const QUIET_PERIOD_MS = 7 * 24 * 60 * 60 * 1000;
-
-type AskRecord = { dismissals: number; lastDismissedAt: number };
-
-// localStorage throws outright in some privacy modes, and a notification
-// prompt is not worth taking the page down over.
-function readAskRecord(): AskRecord {
-  try {
-    const raw = window.localStorage.getItem(ASK_RECORD_KEY);
-    if (!raw) return { dismissals: 0, lastDismissedAt: 0 };
-    const parsed = JSON.parse(raw) as Partial<AskRecord>;
-    return {
-      dismissals: typeof parsed.dismissals === "number" ? parsed.dismissals : 0,
-      lastDismissedAt: typeof parsed.lastDismissedAt === "number" ? parsed.lastDismissedAt : 0,
-    };
-  } catch {
-    return { dismissals: 0, lastDismissedAt: 0 };
-  }
-}
-
-function recordDismissal() {
-  try {
-    const previous = readAskRecord();
-    window.localStorage.setItem(
-      ASK_RECORD_KEY,
-      JSON.stringify({ dismissals: previous.dismissals + 1, lastDismissedAt: Date.now() })
-    );
-  } catch {
-    // Not remembering the refusal is survivable; MAX_ASKS still caps us within
-    // the session, and the placements themselves are rare events.
-  }
-}
-
-function withinQuietPeriod(record: AskRecord): boolean {
-  return record.lastDismissedAt > 0 && Date.now() - record.lastDismissedAt < QUIET_PERIOD_MS;
-}
 
 type Placement = "publish" | "inbox";
 
@@ -89,8 +48,7 @@ export function PushPrompt({
 
     (async () => {
       if (!vapidPublicKey) return; // stays "checking", which renders nothing
-      const record = readAskRecord();
-      if (record.dismissals >= MAX_ASKS || withinQuietPeriod(record)) return;
+      if (!askingIsAllowed()) return;
       const askable = await canAskForPush();
       if (!cancelled && askable) setState("ready");
     })();

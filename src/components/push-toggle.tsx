@@ -8,6 +8,7 @@ import {
   isPushSupported,
   registerServiceWorker,
 } from "@/lib/pwa";
+import { silencePrompt } from "@/lib/push-ask-record";
 
 type State = "loading" | "unsupported" | "off" | "on" | "denied" | "unconfigured";
 
@@ -57,6 +58,10 @@ export function PushToggle({ vapidPublicKey }: { vapidPublicKey?: string | null 
       );
     } else {
       await disablePush();
+      // Someone who came to Settings and switched this off has given the
+      // clearest "no" available. Without this, the contextual prompt would ask
+      // them again on their very next visit to the inbox.
+      silencePrompt();
       setState("off");
     }
     setBusy(false);
