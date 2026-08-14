@@ -32,6 +32,14 @@ export function PushToggle({ vapidPublicKey }: { vapidPublicKey?: string | null 
         if (!cancelled) setState("denied");
         return;
       }
+      // An explicit null means the server has no VAPID keys, so say so now
+      // rather than rendering a switch that does nothing until it's tapped.
+      // (undefined means the caller didn't pass one — keep the old behaviour of
+      // finding out at opt-in time.)
+      if (vapidPublicKey === null) {
+        if (!cancelled) setState("unconfigured");
+        return;
+      }
       const subscription = await getExistingSubscription();
       if (!cancelled) setState(subscription ? "on" : "off");
     })();
@@ -39,7 +47,7 @@ export function PushToggle({ vapidPublicKey }: { vapidPublicKey?: string | null 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [vapidPublicKey]);
 
   async function handleToggle(next: boolean) {
     setBusy(true);
