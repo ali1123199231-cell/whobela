@@ -60,6 +60,11 @@ export async function POST(request: Request) {
     title: `${data.recipientName} said yes 💌`,
     body: `${data.chosenDate} at ${data.chosenTime}. Tap to see their details.`,
     url: "/dashboard/inbox",
+    // Tagging per response, so two people answering while the phone is in a
+    // pocket produce two notifications. The service worker's fallback tag is a
+    // constant, and a shared tag makes each new notification *replace* the last
+    // — which quietly loses the news that someone said yes.
+    tag: response.id,
   });
 
   return NextResponse.json({ ok: true, id: response.id });
