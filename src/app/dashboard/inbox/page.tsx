@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getVapidPublicKey } from "@/lib/push";
+import { PushPrompt } from "@/components/push-prompt";
 
 type Contact = { instagram?: string; whatsapp?: string; facebook?: string; phone?: string; email?: string };
 
@@ -9,15 +11,26 @@ export default async function InboxTab() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const responses = await prisma.response.findMany({
-    where: { datePage: { userId: session.userId } },
-    orderBy: { createdAt: "desc" },
-  });
+  const [responses, vapidPublicKey] = await Promise.all([
+    prisma.response.findMany({
+      where: { datePage: { userId: session.userId } },
+      orderBy: { createdAt: "desc" },
+    }),
+    getVapidPublicKey(),
+  ]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="text-2xl font-semibold text-rose-950">Inbox</h1>
       <p className="mt-1 text-sm text-rose-700/70">Everyone who said yes shows up here ❤️</p>
+
+      {/* Only once a real answer has landed: the value of being told instantly
+          is self-evident to someone who just found out by checking. */}
+      {responses.length > 0 && (
+        <div className="mt-6">
+          <PushPrompt placement="inbox" vapidPublicKey={vapidPublicKey} />
+        </div>
+      )}
 
       <div className="mt-6 flex flex-col gap-4 pb-6">
         {responses.length === 0 && (

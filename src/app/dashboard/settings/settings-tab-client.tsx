@@ -13,6 +13,7 @@ export function SettingsTabClient({
   customDomain: initialDomain,
   customDomainVerified: initialVerified,
   serverIp,
+  vapidPublicKey,
 }: {
   email: string;
   emailNotificationsEnabled: boolean;
@@ -20,6 +21,7 @@ export function SettingsTabClient({
   customDomain: string | null;
   customDomainVerified: boolean;
   serverIp: string | null;
+  vapidPublicKey: string | null;
 }) {
   const router = useRouter();
 
@@ -252,7 +254,7 @@ export function SettingsTabClient({
           Email me when someone says yes
         </label>
         <div className="text-sm font-medium">
-          <PushToggle />
+          <PushToggle vapidPublicKey={vapidPublicKey} />
         </div>
       </Section>
 

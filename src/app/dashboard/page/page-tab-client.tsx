@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { DatePageView, type DatePageConfigPatch } from "@/components/date-page";
 import { PhotoCropper } from "@/components/photo-cropper";
 import { PhotoManager } from "@/components/date-page/photo-manager";
+import { PushPrompt } from "@/components/push-prompt";
 import type { DatePage } from "@/generated/prisma/client";
 
 type Photo = { id: string; url: string };
@@ -12,10 +13,12 @@ export function PageTabClient({
   datePage,
   photos: initialPhotos,
   liveUrl,
+  vapidPublicKey,
 }: {
   datePage: DatePage;
   photos: Photo[];
   liveUrl: string;
+  vapidPublicKey: string | null;
 }) {
   const [config, setConfig] = useState({
     theme: datePage.theme,
@@ -33,6 +36,7 @@ export function PageTabClient({
   const [photosBusy, setPhotosBusy] = useState(false);
   const [editMode, setEditMode] = useState(datePage.status === "DRAFT");
   const [publishing, setPublishing] = useState(false);
+  const [justPublished, setJustPublished] = useState(false);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -56,6 +60,10 @@ export function PageTabClient({
       const data = await res.json();
       setStatus(data.datePage.status);
       setEditMode(false);
+      // The one moment they're certain to want answers delivered: the link is
+      // live and about to go out. Set only here, never on load, so the prompt
+      // can't appear to someone who just wandered onto this tab.
+      setJustPublished(true);
     }
   }
 
@@ -169,6 +177,13 @@ export function PageTabClient({
       <input id="page-photo-input" type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
       {pendingImage && (
         <PhotoCropper imageSrc={pendingImage} onCancel={() => setPendingImage(null)} onCropped={handleCropped} />
+      )}
+      {justPublished && (
+        <PushPrompt
+          placement="publish"
+          vapidPublicKey={vapidPublicKey}
+          onDismiss={() => setJustPublished(false)}
+        />
       )}
       {managingPhotos && !pendingImage && (
         <PhotoManager

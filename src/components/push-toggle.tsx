@@ -11,7 +11,7 @@ import {
 
 type State = "loading" | "unsupported" | "off" | "on" | "denied" | "unconfigured";
 
-export function PushToggle() {
+export function PushToggle({ vapidPublicKey }: { vapidPublicKey?: string | null }) {
   const [state, setState] = useState<State>("loading");
   const [busy, setBusy] = useState(false);
 
@@ -43,7 +43,7 @@ export function PushToggle() {
   async function handleToggle(next: boolean) {
     setBusy(true);
     if (next) {
-      const result = await enablePush();
+      const result = await enablePush(vapidPublicKey);
       setState(
         result === "enabled"
           ? "on"

@@ -44,14 +44,38 @@ export async function getExistingSubscription(): Promise<PushSubscription | null
   return registration.pushManager.getSubscription();
 }
 
+/**
+ * Whether it's worth offering push at all: the browser can do it, the user
+ * hasn't already blocked us, and this device isn't subscribed already.
+ *
+ * Deliberately free of side effects — callers use it to decide whether to put
+ * a prompt on screen, and registering a worker or touching the network just to
+ * answer that would be work done on behalf of a prompt that may never show.
+ */
+export async function canAskForPush(): Promise<boolean> {
+  if (!isPushSupported()) return false;
+  if (Notification.permission === "denied") return false;
+  return (await getExistingSubscription()) === null;
+}
+
 export type EnableResult = "enabled" | "denied" | "unsupported" | "unconfigured" | "failed";
 
-export async function enablePush(): Promise<EnableResult> {
+/**
+ * `publicKey` lets a caller that already has the VAPID key — server-rendered
+ * into the page — skip the round-trip for it. That matters beyond saving a
+ * request: browsers only honour a permission request that's still tied to the
+ * click that triggered it, and an intervening fetch can outlive that window.
+ */
+export async function enablePush(publicKey?: string | null): Promise<EnableResult> {
   if (!isPushSupported()) return "unsupported";
 
-  const keyRes = await fetch("/api/push/subscribe");
-  const keyData = await keyRes.json().catch(() => null);
-  if (!keyData?.publicKey) return "unconfigured";
+  let vapidPublicKey = publicKey ?? null;
+  if (!vapidPublicKey) {
+    const keyRes = await fetch("/api/push/subscribe");
+    const keyData = await keyRes.json().catch(() => null);
+    vapidPublicKey = keyData?.publicKey ?? null;
+  }
+  if (!vapidPublicKey) return "unconfigured";
 
   // Asked before subscribing rather than after, so a refusal costs nothing.
   const permission = await Notification.requestPermission();
@@ -63,7 +87,7 @@ export async function enablePush(): Promise<EnableResult> {
   try {
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: decodeVapidKey(keyData.publicKey),
+      applicationServerKey: decodeVapidKey(vapidPublicKey),
     });
 
     const res = await fetch("/api/push/subscribe", {
