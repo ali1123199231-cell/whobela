@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   disablePush,
   enablePush,
+  ensureSubscriptionSynced,
   getExistingSubscription,
   isPushSupported,
   registerServiceWorker,
@@ -41,6 +42,9 @@ export function PushToggle({ vapidPublicKey }: { vapidPublicKey?: string | null 
         return;
       }
       const subscription = await getExistingSubscription();
+      // Showing "on" is a promise that pushes will arrive, so make sure the
+      // server still has this subscription before making it.
+      if (subscription) await ensureSubscriptionSynced();
       if (!cancelled) setState(subscription ? "on" : "off");
     })();
 

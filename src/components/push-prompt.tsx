@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { canAskForPush, enablePush } from "@/lib/pwa";
+import { canAskForPush, enablePush, ensureSubscriptionSynced } from "@/lib/pwa";
 import { askingIsAllowed, recordDismissal } from "@/lib/push-ask-record";
 
 /*
@@ -47,6 +47,11 @@ export function PushPrompt({
     let cancelled = false;
 
     (async () => {
+      // Unconditional, and before any of the early returns: someone already
+      // subscribed is exactly who we never ask, so this is the only place their
+      // drifted subscription would get noticed. No-ops when there isn't one.
+      await ensureSubscriptionSynced();
+
       if (!vapidPublicKey) return; // stays "checking", which renders nothing
       if (!askingIsAllowed()) return;
       const askable = await canAskForPush();

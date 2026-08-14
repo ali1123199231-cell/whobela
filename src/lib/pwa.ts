@@ -58,6 +58,45 @@ export async function canAskForPush(): Promise<boolean> {
   return (await getExistingSubscription()) === null;
 }
 
+const SYNC_FLAG = "whobela.push-synced";
+
+/**
+ * Re-registers this browser's existing subscription with the server.
+ *
+ * The two sides can drift apart: the server drops a subscription the moment a
+ * push service reports it gone (a 410 during an outage, say), but the browser
+ * knows nothing about that and keeps handing back the same subscription
+ * object. The UI reads the browser, so it goes on showing "on" while nothing
+ * is ever delivered — the one failure mode where we actively mislead someone.
+ *
+ * Re-POSTing is an upsert, so this is cheap and idempotent. Once per tab
+ * session is enough to heal the drift without a write on every page view.
+ */
+export async function ensureSubscriptionSynced(): Promise<void> {
+  if (!isPushSupported()) return;
+  try {
+    if (window.sessionStorage.getItem(SYNC_FLAG)) return;
+  } catch {
+    // No sessionStorage (private mode): fall through and sync every time. A
+    // spare upsert costs less than never healing.
+  }
+
+  const subscription = await getExistingSubscription();
+  if (!subscription) return;
+
+  try {
+    const res = await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(subscription.toJSON()),
+    });
+    if (!res.ok) return; // logged out, or a blip — try again next session
+    window.sessionStorage.setItem(SYNC_FLAG, "1");
+  } catch {
+    // Offline. The subscription is still valid; the next visit can re-sync.
+  }
+}
+
 export type EnableResult = "enabled" | "denied" | "unsupported" | "unconfigured" | "failed";
 
 /**
