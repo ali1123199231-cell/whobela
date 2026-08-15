@@ -7,6 +7,7 @@ import { AuthProvider } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { VERSION_CODE } from "@/lib/config";
 import { routeForNotification, ensureChannel } from "@/lib/notifications";
+import { installCrashReporter } from "@/lib/crash";
 import { UpdateRequired } from "@/components/update-required";
 import { colors } from "@/lib/theme";
 
@@ -36,6 +37,12 @@ export default function RootLayout() {
 
   useEffect(() => {
     void ensureChannel();
+  }, []);
+
+  // Installed before anything else can throw, so a crash on the very first
+  // screen still reaches a log rather than just closing the app.
+  useEffect(() => {
+    installCrashReporter();
   }, []);
 
   // Tapping a notification should land on the thing it was about. Two paths:
