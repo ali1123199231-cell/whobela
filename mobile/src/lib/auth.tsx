@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppState, type AppStateStatus } from "react-native";
-import { apiFetch, setToken, clearToken, getToken, SessionExpiredError } from "./api";
+import { apiFetch, setToken, clearToken, getToken, getCachedUser, setCachedUser, SessionExpiredError } from "./api";
 import { registerForPush, unregisterPush } from "./notifications";
 import { log } from "./log";
 
@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await apiFetch<SessionResponse>("/api/auth/session");
       if (data.token) await setToken(data.token);
+      await setCachedUser(data.user);
       log.info("auth.refresh.ok", { userId: data.user.id, rotated: !!data.token, emailVerified: data.user.emailVerified });
       setUser(data.user);
     } catch (error) {
@@ -59,7 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await clearToken();
         setUser(null);
       } else {
-        log.warn("auth.refresh.offline", { error: error as Error });
+        // Offline, not signed out. Fall back to the last confirmed profile so
+        // the inbox cache is actually reachable — the whole point of keeping
+        // the token through a network failure.
+        const cached = await getCachedUser<User>();
+        log.warn("auth.refresh.offline", { usedCachedUser: !!cached, error: error as Error });
+        if (cached) setUser(cached);
       }
       // Any other failure is almost certainly the network. Keeping the token
       // means someone opening the app on a train sees their cached inbox
@@ -112,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     await setToken(data.token);
     const session = await apiFetch<SessionResponse>("/api/auth/session");
+    await setCachedUser(session.user);
     log.info("auth.signIn.ok", { userId: session.user.id });
     setUser(session.user);
   }, []);
@@ -125,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       await setToken(data.token);
       const session = await apiFetch<SessionResponse>("/api/auth/session");
+      await setCachedUser(session.user);
       log.info("auth.signUp.ok", { userId: session.user.id });
       setUser(session.user);
     },

@@ -3,6 +3,7 @@ import { API_BASE, CLIENT_HEADER, CLIENT_ID } from "./config";
 import { log } from "./log";
 
 const TOKEN_KEY = "whobela.session";
+const USER_KEY = "whobela.user";
 
 /**
  * The session token, in the keystore rather than AsyncStorage.
@@ -25,6 +26,33 @@ export async function setToken(token: string): Promise<void> {
 
 export async function clearToken(): Promise<void> {
   await SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
+  await SecureStore.deleteItemAsync(USER_KEY).catch(() => {});
+}
+
+/**
+ * The last profile the server confirmed, kept beside the token.
+ *
+ * Without it, opening the app with no signal leaves the session token valid but
+ * nobody signed in, so the router sends a perfectly logged-in person to the
+ * signed-out editor — the exact opposite of the offline behaviour the cached
+ * inbox exists for. Stored in the keystore rather than AsyncStorage because it
+ * holds an email address.
+ */
+export async function getCachedUser<T>(): Promise<T | null> {
+  try {
+    const raw = await SecureStore.getItemAsync(USER_KEY);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setCachedUser(user: unknown): Promise<void> {
+  try {
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+  } catch {
+    // A profile we fail to cache costs an offline session, not a working app.
+  }
 }
 
 export class ApiError extends Error {
