@@ -103,11 +103,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That date/time isn't available" }, { status: 400 });
   }
 
+  // The booker form carries a slot for every contact method whether or not the
+  // creator enabled it, so untouched ones arrive as empty strings and get
+  // stored forever. They read as "this person gave us a Facebook" to anything
+  // that checks for the key rather than the value.
+  const recipientContact = Object.fromEntries(
+    Object.entries(data.recipientContact ?? {}).filter(
+      ([, value]) => typeof value === "string" && value.trim() !== ""
+    )
+  );
+
   const response = await prisma.response.create({
     data: {
       datePageId,
       recipientName: data.recipientName,
-      recipientContact: data.recipientContact,
+      recipientContact,
       recipientMessage: data.recipientMessage || null,
       recipientPhotoMediaId: data.recipientPhotoMediaId,
       preferenceSelections: data.preferenceSelections ?? [],
@@ -120,7 +130,7 @@ export async function POST(request: Request) {
   log.info("response.created", {
     responseId: response.id, datePageId, userId: datePage.userId,
     hasMessage: !!data.recipientMessage, hasPhoto: !!data.recipientPhotoMediaId,
-    contactKeys: Object.keys(data.recipientContact ?? {}),
+    contactKeys: Object.keys(recipientContact),
     preferences: (data.preferenceSelections ?? []).length,
   });
 

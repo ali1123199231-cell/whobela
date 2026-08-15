@@ -42,18 +42,28 @@ export function maskEmail(email: string | null | undefined): string | null {
   if (!email) return null;
   const [user, domain] = email.split("@");
   if (!domain) return "***";
-  const head = user.slice(0, 2);
-  return `${head}${user.length > 2 ? "***" : ""}@${domain}`;
+  // The marker is unconditional: with `user.length > 2` gating it, a
+  // one-character local part came through in full and looked like a complete
+  // address rather than a masked one.
+  return `${user.slice(0, 2)}***@${domain}`;
 }
 
 function redact(context: Context): Context {
   const out: Context = {};
   for (const [key, value] of Object.entries(context)) {
     if (value === undefined) continue;
-    if (isSecret(key)) {
+    // Only strings can carry a secret. Redacting a boolean or a count because
+    // the key happens to contain "token" throws away the useful half of the
+    // line — `tokenInBody: true` is exactly the fact worth logging, and it
+    // discloses nothing.
+    if (isSecret(key) && typeof value === "string") {
       // Length is genuinely useful — "did a token arrive at all" is a real
       // question — and it reveals nothing.
-      out[key] = typeof value === "string" ? `[redacted:${value.length}]` : "[redacted]";
+      out[key] = `[redacted:${value.length}]`;
+      continue;
+    }
+    if (isSecret(key) && (typeof value === "object" && value !== null)) {
+      out[key] = "[redacted]";
       continue;
     }
     if (key.toLowerCase().includes("email") && typeof value === "string") {
