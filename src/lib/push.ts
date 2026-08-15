@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getConfigMany, CONFIG_KEYS } from "@/lib/config";
 import { SITE } from "@/lib/seo/site";
 import { sendFcmMessage } from "@/lib/fcm";
-import { log, timer } from "@/lib/log";
+import { log } from "@/lib/log";
 
 // Push services require the VAPID subject to be an https: or mailto: URL, and
 // reject anything else outright. A mailto: is the one form that's valid in
