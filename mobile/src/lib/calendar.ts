@@ -24,12 +24,23 @@ const DEFAULT_DURATION_MINUTES = 120;
  * claim we cannot support, and it would be wrong precisely when someone changed
  * their mind. iOS does distinguish, so the richer outcomes stay in the type.
  */
-export type CalendarOutcome = "saved" | "opened" | "cancelled" | "denied" | "unavailable";
+export type CalendarOutcome =
+  | "saved"
+  | "opened"
+  | "cancelled"
+  | "denied"
+  // No calendar on the device that we are allowed to write to.
+  | "unavailable"
+  // The stored date or time could not be parsed. Kept separate from
+  // "unavailable" because they are not the same failure, and reporting a
+  // parsing bug as "this phone has no calendar" sends the reader looking in
+  // exactly the wrong place — which is what it did.
+  | "unreadable";
 
 /**
  * Combines the stored date and time into an instant.
  *
- * The pair is stored as the recipient chose it — "2026-09-04" and "19:00" in
+ * The pair is stored as the recipient chose it — "2026-09-04" and "7:00 PM" in
  * their timezone — so this builds a local Date in those parts. Constructing it
  * from a string would have the phone reinterpret it in whatever zone it is
  * currently in, and a date that moves when you fly somewhere is worse than no
@@ -37,24 +48,30 @@ export type CalendarOutcome = "saved" | "opened" | "cancelled" | "denied" | "una
  */
 function toStartDate(response: InboxResponse): Date | null {
   const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(response.chosenDate);
-  const timeMatch = /^(\d{1,2}):(\d{2})$/.exec(response.chosenTime);
+  // Twelve-hour with a meridiem — "6:00 PM" — because that is the shape the
+  // server stores and validates against (TIME_SLOT_PATTERN in
+  // src/lib/date-page-defaults.ts). Parsing this as 24-hour silently fails on
+  // every single response.
+  const timeMatch = /^(1[0-2]|[1-9]):([0-5]\d)\s*(AM|PM)$/i.exec(response.chosenTime.trim());
   if (!dateMatch || !timeMatch) return null;
 
   const [, year, month, day] = dateMatch;
-  const [, hour, minute] = timeMatch;
-  const start = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), 0, 0);
+  const [, hourStr, minute, period] = timeMatch;
+  const hour12 = Number(hourStr);
+  const isPm = period.toUpperCase() === "PM";
+  const hour24 = isPm ? (hour12 === 12 ? 12 : hour12 + 12) : hour12 === 12 ? 0 : hour12;
+
+  const start = new Date(Number(year), Number(month) - 1, Number(day), hour24, Number(minute), 0, 0);
   return Number.isNaN(start.getTime()) ? null : start;
 }
 
 export async function addToCalendar(response: InboxResponse): Promise<CalendarOutcome> {
   const start = toStartDate(response);
-  if (!start) return "unavailable";
+  if (!start) return "unreadable";
 
-  // Full permission, not write-only. "Write-only" is an iOS notion; on Android
-  // passing it returns granted without ever showing a dialog, and the read that
-  // follows then finds nothing — which surfaced on a phone with three calendars
-  // as "No calendar found". Choosing where the event goes means listing the
-  // calendars, and listing them requires READ_CALENDAR.
+  // Full permission, not write-only: `writeOnly` is documented as iOS-only, and
+  // picking which calendar the event lands in means listing them, which needs
+  // READ_CALENDAR either way.
   const { status } = await Calendar.requestCalendarPermissions();
   if (status !== "granted") return "denied";
 

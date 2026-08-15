@@ -39,7 +39,9 @@ export function ResponseCard({ response }: { response: InboxResponse }) {
       if (outcome === "denied") {
         Alert.alert("Calendar access needed", "Allow calendar access to add this date.");
       } else if (outcome === "unavailable") {
-        Alert.alert("No calendar found", "This phone has no calendar app to add the date to.");
+        Alert.alert("No calendar found", "This phone has no calendar we can add the date to.");
+      } else if (outcome === "unreadable") {
+        Alert.alert("Couldn't read that date", "The date on this answer isn't in a format we understand.");
       }
       // "saved" and "opened" both speak for themselves: the system's own event
       // screen has already appeared, so a confirmation here would just be a
