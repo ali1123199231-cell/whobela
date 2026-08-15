@@ -103,6 +103,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That date/time isn't available" }, { status: 400 });
   }
 
+  // A double tap on Confirm, or a retry after a flaky connection, otherwise
+  // produces two identical answers — and two notifications, since each is
+  // tagged per response. Deliberately narrow: same page, same name, same slot,
+  // within a minute. Someone genuinely answering again tomorrow, or a second
+  // person using the same link, is not caught by any part of that.
+  const duplicate = await prisma.response.findFirst({
+    where: {
+      datePageId,
+      recipientName: data.recipientName,
+      chosenDate: data.chosenDate,
+      chosenTime: data.chosenTime,
+      createdAt: { gte: new Date(Date.now() - 60_000) },
+    },
+    select: { id: true },
+  });
+  if (duplicate) {
+    log.info("response.duplicate.ignored", { datePageId, existingId: duplicate.id });
+    // Reported as success on purpose: from the recipient's side the answer did
+    // arrive, and an error here would invite them to try a third time.
+    return NextResponse.json({ ok: true, id: duplicate.id, duplicate: true });
+  }
+
   // The booker form carries a slot for every contact method whether or not the
   // creator enabled it, so untouched ones arrive as empty strings and get
   // stored forever. They read as "this person gave us a Facebook" to anything
