@@ -24,6 +24,11 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.rose600,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: { backgroundColor: colors.white, borderTopColor: colors.border },
+        // Labels are kept short because a tab is a third of the screen wide
+        // and cannot wrap: "Your invitation" clipped to "Your invitatio…" at
+        // the largest system font size. Deliberately not disabling font
+        // scaling to fix it — that would help the layout by hurting the people
+        // the setting exists for.
         headerStyle: { backgroundColor: colors.rose50 },
         headerTintColor: colors.rose950,
         headerTitleStyle: { fontWeight: "600" },
@@ -40,7 +45,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="invitation"
         options={{
-          title: "Your invitation",
+          title: "Invitation",
           tabBarIcon: ({ color, size }) => <Ionicons name="create" color={color} size={size} />,
         }}
       />
