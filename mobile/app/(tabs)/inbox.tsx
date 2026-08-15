@@ -20,9 +20,14 @@ export default function InboxScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  // Keyed on the id rather than the user object: refreshing the session hands
+  // back a new object with the same contents, and depending on it made this
+  // callback change identity and refetch for no reason.
+  const userId = user?.id;
+
   const load = useCallback(
     async () => {
-      if (!user) return;
+      if (!userId) return;
 
       try {
         const page = await fetchInbox();
@@ -31,7 +36,7 @@ export default function InboxScreen() {
         setCursor(page.nextCursor);
         setCachedAt(null);
         setError(null);
-        await writeCache(user.id, page.responses);
+        await writeCache(userId, page.responses);
       } catch (failure) {
         if (failure instanceof SessionExpiredError) {
           await signOut();
@@ -39,7 +44,7 @@ export default function InboxScreen() {
         }
         // Fall back to whatever this account last saw. Being underground is
         // not a reason to be unable to find out who said yes.
-        const cached = await readCache(user.id);
+        const cached = await readCache(userId);
         log.warn("inbox.offline", { usedCache: !!cached, cachedCount: cached?.responses.length ?? 0 });
         if (cached) {
           setResponses(cached.responses);
@@ -52,7 +57,7 @@ export default function InboxScreen() {
         setRefreshing(false);
       }
     },
-    [user, signOut]
+    [userId, signOut]
   );
 
   // Refetched every time the tab is focused, not just on mount. Tapping a

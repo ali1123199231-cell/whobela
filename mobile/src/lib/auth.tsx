@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { AppState } from "react-native";
+import { AppState, type AppStateStatus } from "react-native";
 import { apiFetch, setToken, clearToken, getToken, SessionExpiredError } from "./api";
 import { registerForPush, unregisterPush } from "./notifications";
 import { log } from "./log";
@@ -89,11 +89,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // only notices on relaunch shows people stale facts about themselves for as
   // long as it stays in memory.
   useEffect(() => {
+    // Only a genuine background -> active transition counts. AppState reports
+    // "active" once at launch too, which duplicated the mount refresh: every
+    // cold start made two session calls, registered the device twice and
+    // loaded the inbox twice.
+    let previous: AppStateStatus = AppState.currentState;
     const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") {
-        log.debug("app.foreground");
-        void refresh();
-      }
+      const returning = state === "active" && previous.match(/inactive|background/);
+      previous = state;
+      if (!returning) return;
+      log.debug("app.foreground");
+      void refresh();
     });
     return () => subscription.remove();
   }, [refresh]);

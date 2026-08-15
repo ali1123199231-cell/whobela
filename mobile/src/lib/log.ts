@@ -29,8 +29,12 @@ function redact(context: Context): Context {
   const out: Context = {};
   for (const [key, value] of Object.entries(context)) {
     if (value === undefined) continue;
-    if (isSecret(key)) {
-      out[key] = typeof value === "string" ? `[redacted:${value.length}]` : "[redacted]";
+    // Only a string can carry a secret. Redacting `authed: true` because the
+    // key contains "auth" throws away the useful half and protects nothing.
+    if (isSecret(key) && typeof value === "string") {
+      out[key] = `[redacted:${value.length}]`;
+    } else if (isSecret(key) && typeof value === "object" && value !== null) {
+      out[key] = "[redacted]";
     } else if (key.toLowerCase().includes("email") && typeof value === "string") {
       const [user, domain] = value.split("@");
       out[key] = domain ? `${user.slice(0, 2)}***@${domain}` : "***";
