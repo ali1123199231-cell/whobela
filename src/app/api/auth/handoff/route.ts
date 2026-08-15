@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession, createSessionToken, sessionCookie } from "@/lib/auth";
 import { getRootOrigin } from "@/lib/config";
+import { appShellCookie } from "@/lib/app-shell";
 
 /**
  * Hands the app's session to the WebView that hosts the editor.
@@ -36,6 +37,9 @@ export async function GET(request: Request) {
 
   const response = NextResponse.redirect(new URL(target, origin), { status: 303 });
   response.cookies.set(sessionCookie(token));
+  // Marks every later navigation in this WebView as app-hosted, so the web UI
+  // can drop the chrome the app already provides.
+  response.cookies.set(appShellCookie);
   return response;
 }
 
