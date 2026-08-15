@@ -24,17 +24,40 @@ const MAX_DIMENSION = 2000;
  * directly, which is why the web upload path never had to care and why this
  * would have looked like a bug in the app rather than in the server.
  *
- * Animated GIFs are passed through untouched: sharp would flatten one to its
- * first frame, and a still of someone's reaction GIF is worse than a large file.
+ * Animated GIFs are re-checked but not re-encoded: sharp would flatten one to
+ * its first frame, and a still of someone's reaction GIF is worse than a large
+ * file. Their bytes are still parsed first, so "it is a GIF" is a fact and not
+ * a claim.
  *
- * Never throws. A photo sharp cannot parse is stored exactly as it arrived —
- * the format allowlist upstream has already established it is an image, and
- * losing an upload is worse than storing an awkward one.
+ * Throws InvalidImageError when the bytes are not a decodable image. The
+ * allowlist upstream only inspects the Content-Type the *client* chose, which
+ * anyone can set to image/jpeg on a text file — and for booker photos the
+ * uploader has no account at all. If sharp cannot decode it, it is not a photo,
+ * and storing it under a .jpeg extension to be served back later is not a
+ * kindness to anyone.
  */
+export class InvalidImageError extends Error {
+  constructor() {
+    super("That file isn't an image we can read.");
+    this.name = "InvalidImageError";
+  }
+}
+
 async function normaliseImage(buffer: Buffer, mimeType: string): Promise<Buffer> {
   if (mimeType === "image/gif") {
-    log.debug("media.normalise.skipped", { reason: "animated gif", bytes: buffer.length });
-    return buffer;
+    // Decoded purely to prove it is really an image; the original bytes are
+    // what gets stored, so animation survives.
+    try {
+      const meta = await sharp(buffer).metadata();
+      if (!meta.width || !meta.height) throw new Error("no dimensions");
+      log.debug("media.normalise.skipped", {
+        reason: "animated gif", bytes: buffer.length, size: `${meta.width}x${meta.height}`,
+      });
+      return buffer;
+    } catch {
+      log.warn("media.rejected.undecodable", { type: mimeType, bytes: buffer.length });
+      throw new InvalidImageError();
+    }
   }
 
   try {
@@ -58,8 +81,10 @@ async function normaliseImage(buffer: Buffer, mimeType: string): Promise<Buffer>
     });
     return out;
   } catch (error) {
-    log.error("media.normalise.failed", { type: mimeType, bytes: buffer.length, error });
-    return buffer;
+    // Reached when sharp cannot decode the bytes at all — i.e. this is not an
+    // image, whatever the Content-Type said.
+    log.warn("media.rejected.undecodable", { type: mimeType, bytes: buffer.length, error });
+    throw new InvalidImageError();
   }
 }
 

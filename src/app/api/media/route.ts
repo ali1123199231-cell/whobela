@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { saveMedia } from "@/lib/media";
+import { saveMedia, InvalidImageError } from "@/lib/media";
 import { log, clientOf } from "@/lib/log";
 
 const MAX_PROFILE_PHOTOS = 6;
@@ -49,7 +49,18 @@ export async function POST(request: Request) {
     }
   }
 
-  const media = await saveMedia({ userId, kind, file });
+  let media;
+  try {
+    media = await saveMedia({ userId, kind, file });
+  } catch (error) {
+    // The Content-Type said image; the bytes disagreed. Refusing is the point —
+    // anyone can set that header, and booker photos come from people with no
+    // account behind them.
+    if (error instanceof InvalidImageError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    throw error;
+  }
   log.info("media.uploaded", {
     mediaId: media.id, userId: userId ?? null, kind,
     client: clientOf(request), type: file.type, bytesIn: file.size,
