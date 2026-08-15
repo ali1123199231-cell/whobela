@@ -1,0 +1,27 @@
+# Keeps the build context to what actually ships. Deliberately does NOT exclude
+# node_modules: the builder installs its own with `npm ci`, but the image has
+# always been built with the host's copy layered on top, and changing how
+# dependencies reach production is not something to do quietly alongside an
+# unrelated feature.
+
+# The mobile app. Its own node_modules is roughly a gigabyte and none of it is
+# served by the web app.
+mobile/
+
+# The Android build: keystores, signed bundles, and a second node_modules.
+# A keystore in a container image is a keystore one `docker save` from being
+# somewhere it cannot be recalled from.
+android/
+
+# Local upload volumes. uploads-prod is a copy of real users' photographs.
+uploads/
+uploads-prod/
+
+# Rebuilt inside the image by `npm run build`.
+.next/
+
+.git/
+.gitignore
+*.log
+.env.local
+.playwright-mcp/

@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The React Native app, which has its own config. Next's rules actively
+    // misfire here: RN's <Image> takes no alt text, and require() is how it
+    // resolves static assets.
+    "mobile/**",
+    "android/**",
   ]),
 ]);
 

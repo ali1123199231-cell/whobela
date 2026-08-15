@@ -68,4 +68,14 @@ export const CONFIG_KEYS = {
   // browser subscription, so once set they should be left alone.
   VAPID_PUBLIC_KEY: "VAPID_PUBLIC_KEY",
   VAPID_PRIVATE_KEY: "VAPID_PRIVATE_KEY",
+
+  // The Firebase service account JSON, pasted whole, used to reach the Android
+  // app through FCM. Web push and FCM are independent: either can be
+  // unconfigured without disturbing the other.
+  FCM_SERVICE_ACCOUNT_JSON: "FCM_SERVICE_ACCOUNT_JSON",
+
+  // The oldest app build the API still answers, and the newest one published.
+  // Set these to lock out a release that shipped broken — see /api/app/config.
+  APP_MIN_VERSION_CODE: "APP_MIN_VERSION_CODE",
+  APP_LATEST_VERSION_CODE: "APP_LATEST_VERSION_CODE",
 } as const;

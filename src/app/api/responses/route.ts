@@ -1,10 +1,64 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 import { responseSubmitSchema } from "@/lib/validation";
 import { getLiveStatus } from "@/lib/date-page";
 import { sendNewResponseEmail } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
 import { DEFAULT_SCHEDULING_CONFIG, isValidBookingSlot, withDefaults } from "@/lib/date-page-defaults";
+
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 50;
+
+/**
+ * The caller's inbox, newest first.
+ *
+ * The web inbox is a server component that reads Prisma directly and takes
+ * every response ever — fine for a page render, not fine for an app that
+ * refreshes on every launch over mobile data. This pages instead, keyed on a
+ * response id rather than an offset so that an answer landing mid-scroll can't
+ * shift the window and hide the row underneath it.
+ */
+export async function GET(request: Request) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const url = new URL(request.url);
+  const requested = Number(url.searchParams.get("limit"));
+  const limit = Number.isFinite(requested) && requested > 0 ? Math.min(requested, MAX_LIMIT) : DEFAULT_LIMIT;
+  const cursor = url.searchParams.get("cursor");
+
+  // One extra row is fetched purely to find out whether another page exists,
+  // and dropped before responding.
+  const rows = await prisma.response.findMany({
+    where: { datePage: { userId: session.userId } },
+    // createdAt alone is not a stable sort: two people answering in the same
+    // millisecond would page unpredictably, repeating one row and skipping the
+    // other. The id breaks the tie.
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: limit + 1,
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+  });
+
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
+
+  return NextResponse.json({
+    responses: page.map((r) => ({
+      id: r.id,
+      recipientName: r.recipientName,
+      contact: r.recipientContact,
+      message: r.recipientMessage,
+      preferences: Array.isArray(r.preferenceSelections) ? r.preferenceSelections : [],
+      chosenDate: r.chosenDate,
+      chosenTime: r.chosenTime,
+      timezone: r.timezone,
+      photoUrl: r.recipientPhotoMediaId ? `/api/media/${r.recipientPhotoMediaId}` : null,
+      createdAt: r.createdAt.toISOString(),
+    })),
+    nextCursor: hasMore ? page[page.length - 1].id : null,
+  });
+}
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);

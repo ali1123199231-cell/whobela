@@ -1,0 +1,124 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { apiFetch, setToken, clearToken, getToken, SessionExpiredError } from "./api";
+import { registerForPush, unregisterPush } from "./notifications";
+
+export type User = {
+  id: string;
+  email: string;
+  username: string;
+  firstName: string | null;
+  emailVerified: boolean;
+  emailNotificationsEnabled: boolean;
+};
+
+type SessionResponse = { user: User; token?: string };
+
+type AuthState = {
+  user: User | null;
+  /** True until the stored token has been checked, so nothing flashes the wrong screen. */
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (input: { email: string; password: string; username: string; firstName: string }) => Promise<void>;
+  signOut: () => Promise<void>;
+  refresh: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthState | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  /**
+   * Confirms the stored token still works and takes the rotated one.
+   *
+   * Called on every cold start, which is what keeps someone who opens the app
+   * monthly from ever being logged out: the server reissues a fresh thirty-day
+   * token each time rather than counting down from whenever they signed in.
+   */
+  const refresh = useCallback(async () => {
+    const stored = await getToken();
+    if (!stored) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const data = await apiFetch<SessionResponse>("/api/auth/session");
+      if (data.token) await setToken(data.token);
+      setUser(data.user);
+    } catch (error) {
+      if (error instanceof SessionExpiredError) {
+        // The password was changed somewhere else, or the account is gone.
+        await clearToken();
+        setUser(null);
+      }
+      // Any other failure is almost certainly the network. Keeping the token
+      // means someone opening the app on a train sees their cached inbox
+      // instead of being thrown back to a login screen they can't complete.
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // refresh awaits the keystore before it touches state, so the first
+    // update lands in a later tick rather than cascading a render on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void refresh();
+  }, [refresh]);
+
+  // Registration is attempted whenever a user is present rather than only at
+  // sign-in: FCM rotates registration tokens on its own schedule, and a token
+  // nobody re-registered is a phone that has silently stopped being notified.
+  useEffect(() => {
+    if (user) void registerForPush();
+  }, [user]);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    const data = await apiFetch<{ ok: true; token: string }>("/api/auth/login", {
+      method: "POST",
+      body: { email, password },
+      anonymous: true,
+    });
+    await setToken(data.token);
+    const session = await apiFetch<SessionResponse>("/api/auth/session");
+    setUser(session.user);
+  }, []);
+
+  const signUp = useCallback(
+    async (input: { email: string; password: string; username: string; firstName: string }) => {
+      const data = await apiFetch<{ ok: true; token: string }>("/api/auth/signup", {
+        method: "POST",
+        body: input,
+        anonymous: true,
+      });
+      await setToken(data.token);
+      const session = await apiFetch<SessionResponse>("/api/auth/session");
+      setUser(session.user);
+    },
+    []
+  );
+
+  const signOut = useCallback(async () => {
+    // Unregistered before the token goes, since the call needs it — otherwise
+    // the next person to use this phone is told who said yes to the last one.
+    await unregisterPush().catch(() => {});
+    await clearToken();
+    setUser(null);
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, loading, signIn, signUp, signOut, refresh }),
+    [user, loading, signIn, signUp, signOut, refresh]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthState {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used inside AuthProvider");
+  return context;
+}

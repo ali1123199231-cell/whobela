@@ -1,0 +1,86 @@
+{
+  "expo": {
+    "name": "Whobela",
+    "slug": "whobela",
+    "scheme": "whobela",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FFF1F2",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFF1F2"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.whobela.app",
+      "versionCode": 2,
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#E11D48"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": ["android.permission.CAMERA", "android.permission.POST_NOTIFICATIONS"],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            { "scheme": "https", "host": "whobela.com", "pathPrefix": "/dashboard" },
+            { "scheme": "https", "host": "whobela.com", "pathPrefix": "/create" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.whobela.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
+            "minSdkVersion": 24
+          }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#E11D48",
+          "defaultChannel": "responses"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Whobela needs your photos so you can add them to your invitation.",
+          "cameraPermission": "Whobela needs the camera so you can take a photo for your invitation."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Whobela adds a date to your calendar when someone says yes."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

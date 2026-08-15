@@ -2,6 +2,7 @@ import webpush from "web-push";
 import { prisma } from "@/lib/prisma";
 import { getConfigMany, CONFIG_KEYS } from "@/lib/config";
 import { SITE } from "@/lib/seo/site";
+import { sendFcmMessage } from "@/lib/fcm";
 
 // Push services require the VAPID subject to be an https: or mailto: URL, and
 // reject anything else outright. A mailto: is the one form that's valid in
@@ -47,6 +48,45 @@ export async function isPushConfigured(): Promise<boolean> {
  * it's likelier to be a transient outage than a subscription worth discarding.
  */
 export async function sendPushToUser(userId: string, payload: PushPayload): Promise<void> {
+  // Both channels, always. Someone with the app on their phone and the site
+  // pinned on a laptop has opted in twice and means it — and the two are
+  // independent, so an unconfigured or broken FCM must not cost the browser
+  // its notification, or the reverse.
+  await Promise.all([sendWebPush(userId, payload), sendNativePush(userId, payload)]);
+}
+
+/**
+ * Pushes to every Android install a user has registered.
+ *
+ * Same contract as the web-push path: never rejects, and prunes the tokens FCM
+ * reports as dead. An uninstalled app produces a token that fails forever
+ * otherwise, once per response, for as long as the account exists.
+ */
+async function sendNativePush(userId: string, payload: PushPayload): Promise<void> {
+  try {
+    const devices = await prisma.deviceToken.findMany({ where: { userId } });
+    if (devices.length === 0) return;
+
+    await Promise.all(
+      devices.map(async (device) => {
+        const result = await sendFcmMessage({
+          token: device.token,
+          title: payload.title,
+          body: payload.body,
+          url: payload.url,
+          tag: payload.tag,
+        });
+        if (result === "unregistered") {
+          await prisma.deviceToken.delete({ where: { token: device.token } }).catch(() => {});
+        }
+      })
+    );
+  } catch (error) {
+    console.error("[push] native delivery failed", error);
+  }
+}
+
+async function sendWebPush(userId: string, payload: PushPayload): Promise<void> {
   try {
     const vapid = await getVapid();
     if (!vapid) return;

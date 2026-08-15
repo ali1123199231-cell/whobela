@@ -1,10 +1,22 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 const COOKIE_NAME = "whobela_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30; // 30 days
+
+// The Android app has no cookie jar we control, so it holds the same JWT and
+// sends it as a bearer token instead. It announces itself with this header on
+// login and signup, which is the only way to get the token back in the response
+// body — the browser must never see it, since an httpOnly cookie is exactly
+// what keeps page JavaScript away from a 30-day credential.
+const CLIENT_HEADER = "x-whobela-client";
+
+/** True when the caller is the native app rather than a browser. */
+export function isNativeClient(request: Request) {
+  return request.headers.get(CLIENT_HEADER) !== null;
+}
 
 export const MAX_LOGIN_ATTEMPTS = 5;
 export const LOGIN_LOCKOUT_MS = 15 * 60 * 1000;
@@ -38,15 +50,27 @@ export async function createSessionToken(payload: SessionPayload) {
     .sign(getSecret());
 }
 
-export async function setSessionCookie(token: string) {
-  const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, token, {
+/**
+ * The session cookie as a plain object, for handlers that build their own
+ * response — a redirect can't go through `cookies()`, since that mutates the
+ * response Next is about to generate rather than the one being returned.
+ */
+export function sessionCookie(token: string) {
+  return {
+    name: COOKIE_NAME,
+    value: token,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
     maxAge: SESSION_DURATION_SECONDS,
-  });
+  };
+}
+
+export async function setSessionCookie(token: string) {
+  const cookieStore = await cookies();
+  const { name, value, ...options } = sessionCookie(token);
+  cookieStore.set(name, value, options);
 }
 
 export async function clearSessionCookie() {
@@ -56,9 +80,23 @@ export async function clearSessionCookie() {
 
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
+  const token = cookieStore.get(COOKIE_NAME)?.value ?? (await getBearerToken());
   if (!token) return null;
+  return verifySessionToken(token);
+}
 
+/**
+ * The `Authorization: Bearer` fallback for the native app. Checked only after
+ * the cookie, so a browser session always wins and nothing about the web flow
+ * changes.
+ */
+async function getBearerToken(): Promise<string | null> {
+  const header = (await headers()).get("authorization");
+  if (!header?.toLowerCase().startsWith("bearer ")) return null;
+  return header.slice("bearer ".length).trim() || null;
+}
+
+export async function verifySessionToken(token: string): Promise<SessionPayload | null> {
   let payload: SessionPayload;
   try {
     const verified = await jwtVerify(token, getSecret());
