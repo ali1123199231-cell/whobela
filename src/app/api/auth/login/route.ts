@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyPassword, createSessionToken, setSessionCookie, MAX_LOGIN_ATTEMPTS, LOGIN_LOCKOUT_MS } from "@/lib/auth";
+import {
+  verifyPassword,
+  createSessionToken,
+  setSessionCookie,
+  isNativeClient,
+  MAX_LOGIN_ATTEMPTS,
+  LOGIN_LOCKOUT_MS,
+} from "@/lib/auth";
 import { loginSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -50,5 +57,5 @@ export async function POST(request: Request) {
   });
   await setSessionCookie(token);
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json(isNativeClient(request) ? { ok: true, token } : { ok: true });
 }
