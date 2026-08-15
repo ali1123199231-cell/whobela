@@ -24,6 +24,32 @@ const stripLeadingAt = (handle: string) => handle.trim().replace(/^@+/, "");
 /** wa.me takes digits only — no plus, spaces or dashes. */
 const digitsOnly = (phone: string) => phone.replace(/\D/g, "");
 
+/**
+ * Reduces whatever someone typed into a bare profile handle.
+ *
+ * Recipients are strangers filling in a public form, and the creator taps
+ * whatever comes back. Passing a value through as a URL when it happened to
+ * start with "http" meant a chip labelled "Facebook" could open any site on the
+ * internet — a phishing link wearing a trusted label. Only the last path
+ * segment of a matching profile URL survives; anything else is treated as a
+ * handle, so the host is always one we chose.
+ */
+function handleFrom(raw: string, host: string): string {
+  const trimmed = stripLeadingAt(raw.trim());
+  if (!/^https?:\/\//i.test(trimmed)) return trimmed.replace(/^\/+/, "");
+  try {
+    const url = new URL(trimmed);
+    // A URL for a different site tells us nothing trustworthy about a handle.
+    // Exact match or a real subdomain — a plain endsWith would accept
+    // "evilfacebook.com", which is the whole trick.
+    const hostname = url.hostname.toLowerCase();
+    if (hostname !== host && !hostname.endsWith(`.${host}`)) return "";
+    return stripLeadingAt(url.pathname.split("/").filter(Boolean)[0] ?? "");
+  } catch {
+    return "";
+  }
+}
+
 export function reachOptions(response: InboxResponse): ReachOption[] {
   const { contact } = response;
   const options: ReachOption[] = [];
@@ -41,7 +67,7 @@ export function reachOptions(response: InboxResponse): ReachOption[] {
   }
 
   if (contact.instagram) {
-    const handle = stripLeadingAt(contact.instagram);
+    const handle = handleFrom(contact.instagram, "instagram.com");
     if (handle) {
       // Instagram has no public deep link that opens a DM thread with someone
       // you have never messaged, so this opens their profile — one tap from
@@ -50,26 +76,29 @@ export function reachOptions(response: InboxResponse): ReachOption[] {
         key: "instagram",
         label: "Instagram",
         value: `@${handle}`,
-        url: `https://instagram.com/${handle}`,
+        url: `https://instagram.com/${encodeURIComponent(handle)}`,
       });
     }
   }
 
   if (contact.tiktok) {
-    const handle = stripLeadingAt(contact.tiktok);
+    const handle = handleFrom(contact.tiktok, "tiktok.com");
     if (handle) {
-      options.push({ key: "tiktok", label: "TikTok", value: `@${handle}`, url: `https://tiktok.com/@${handle}` });
+      options.push({
+        key: "tiktok", label: "TikTok", value: `@${handle}`,
+        url: `https://tiktok.com/@${encodeURIComponent(handle)}`,
+      });
     }
   }
 
   if (contact.facebook) {
-    const handle = stripLeadingAt(contact.facebook);
+    const handle = handleFrom(contact.facebook, "facebook.com");
     if (handle) {
       options.push({
         key: "facebook",
         label: "Facebook",
         value: handle,
-        url: handle.startsWith("http") ? handle : `https://facebook.com/${handle}`,
+        url: `https://facebook.com/${encodeURIComponent(handle)}`,
       });
     }
   }
