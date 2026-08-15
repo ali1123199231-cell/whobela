@@ -17,7 +17,7 @@ export default function EditorScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
       <View style={styles.web}>
-        <SiteWebView path="/create?source=app" requiresAuth={false} />
+        <SiteWebView path="/create?source=app" />
       </View>
       <View style={styles.bar}>
         <Text style={styles.barText}>Sign up to keep this and see who answers.</Text>

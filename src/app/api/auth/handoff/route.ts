@@ -16,16 +16,31 @@ import { log, clientOf } from "@/lib/log";
  * The app points the WebView here with its bearer token on the initial request;
  * this sets the cookie and redirects to the real destination, so the token
  * never lands in a URL, browser history, or a Caddy access log.
+ *
+ * Every WebView load goes through here, signed in or not, because this endpoint
+ * is what makes the app's auth state authoritative over the WebView's. A
+ * WebView keeps its own cookie jar: someone who signed in to whobela.com inside
+ * it once stays signed in there even after signing out of the app. That
+ * produced a genuinely baffling screen — the app showing "Sign up to keep this"
+ * at the bottom while the WebView above it showed a different account's
+ * dashboard, complete with the website's own navigation. Arriving here without
+ * a valid token now *clears* the session cookie rather than being refused.
  */
 export async function GET(request: Request) {
   const session = await getSession();
-  if (!session) {
-    log.warn("auth.handoff.unauthorized", { client: clientOf(request) });
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const origin = getRootOrigin();
   const target = safeRedirectPath(new URL(request.url).searchParams.get("to"));
+  const requested = new URL(request.url).searchParams.get("to");
+
+  if (!session) {
+    // Not an error: this is the app telling us nobody is signed in. Clearing
+    // the cookie is the whole point — the WebView must not outrank the app.
+    log.info("auth.handoff.anonymous", { client: clientOf(request), target });
+    const anon = NextResponse.redirect(new URL(target, origin), { status: 303 });
+    anon.cookies.set({ ...sessionCookie(""), maxAge: 0 });
+    anon.cookies.set(appShellCookie);
+    return anon;
+  }
 
   // Freshly minted rather than reusing the bearer token: this is the copy that
   // will sit in a cookie jar for thirty days, and it should start its life now
@@ -37,7 +52,6 @@ export async function GET(request: Request) {
     tokenVersion: session.tokenVersion,
   });
 
-  const requested = new URL(request.url).searchParams.get("to");
   log.info("auth.handoff.ok", {
     userId: session.userId, client: clientOf(request), requested,
     target, rejected: requested !== null && requested !== target,
@@ -59,10 +73,11 @@ export async function GET(request: Request) {
  * someone from a link they trust to a page they don't, already signed in.
  */
 function safeRedirectPath(raw: string | null): string {
-  if (!raw) return "/dashboard";
-  if (!raw.startsWith("/") || raw.startsWith("//")) return "/dashboard";
+  const FALLBACK = "/dashboard";
+  if (!raw) return FALLBACK;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return FALLBACK;
   // A backslash is treated as a slash by some parsers, so `/\evil.example`
   // is the same trick wearing a different hat.
-  if (raw.includes("\\")) return "/dashboard";
+  if (raw.includes("\\")) return FALLBACK;
   return raw;
 }

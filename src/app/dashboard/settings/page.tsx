@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getVapidPublicKey } from "@/lib/push";
+import { isAppShell } from "@/lib/app-shell";
 import { SettingsTabClient } from "./settings-tab-client";
 
 export default async function SettingsTab() {
@@ -20,6 +21,10 @@ export default async function SettingsTab() {
   if (!user) redirect("/login");
 
   const serverIp = process.env.SERVER_IP ?? null;
+  // Inside the app, browser push and a "get the app" badge are both nonsense:
+  // the WebView has no Notification API, so the toggle can only ever say it
+  // cannot work, and the app is already installed.
+  const inApp = await isAppShell();
 
   return (
     <SettingsTabClient
@@ -30,6 +35,7 @@ export default async function SettingsTab() {
       customDomainVerified={Boolean(datePage.customDomainVerifiedAt)}
       serverIp={serverIp}
       vapidPublicKey={vapidPublicKey}
+      inApp={inApp}
     />
   );
 }

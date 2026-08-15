@@ -14,6 +14,7 @@ export function SettingsTabClient({
   customDomainVerified: initialVerified,
   serverIp,
   vapidPublicKey,
+  inApp,
 }: {
   email: string;
   emailNotificationsEnabled: boolean;
@@ -22,6 +23,7 @@ export function SettingsTabClient({
   customDomainVerified: boolean;
   serverIp: string | null;
   vapidPublicKey: string | null;
+  inApp?: boolean;
 }) {
   const router = useRouter();
 
@@ -254,7 +256,14 @@ export function SettingsTabClient({
           Email me when someone says yes
         </label>
         <div className="text-sm font-medium">
-          <PushToggle vapidPublicKey={vapidPublicKey} />
+          {/* The WebView has no Notification API, so this could only ever
+              report that it cannot work. The app has its own control. */}
+          {!inApp && <PushToggle vapidPublicKey={vapidPublicKey} />}
+          {inApp && (
+            <p className="text-sm text-rose-700/80">
+              Notifications are handled by the app — turn them on in Settings.
+            </p>
+          )}
         </div>
       </Section>
 
@@ -263,7 +272,7 @@ export function SettingsTabClient({
           Install Whobela on your phone to open your page in one tap and get answers the moment
           they arrive.
         </p>
-        <InstallApp />
+        {!inApp && <InstallApp />}
       </Section>
 
       <Section title="Account security">

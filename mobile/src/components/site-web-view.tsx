@@ -16,7 +16,7 @@ import { log } from "@/lib/log";
  * every install immediately instead of waiting on a Play review. The palette is
  * shared with the native screens precisely so this seam is invisible.
  */
-export function SiteWebView({ path, requiresAuth }: { path: string; requiresAuth: boolean }) {
+export function SiteWebView({ path }: { path: string }) {
   const webRef = useRef<WebView>(null);
   const [uri, setUri] = useState<string | null>(null);
   const [headers, setHeaders] = useState<Record<string, string>>({});
@@ -30,21 +30,17 @@ export function SiteWebView({ path, requiresAuth }: { path: string; requiresAuth
     const token = await getToken();
     const base = { [CLIENT_HEADER]: CLIENT_ID };
 
-    if (!requiresAuth) {
-      log.info("webview.anonymous", { path });
-      setUri(`${API_BASE}${path}`);
-      setHeaders(base);
-      return;
-    }
-
-    // Signed in, the WebView needs a cookie it has no way to obtain: the app
-    // authenticates by bearer token. The handoff endpoint takes the token on
-    // this first request, sets the cookie and redirects — so the token stays
-    // out of the URL, and out of anything that logs one.
+    // Always through the handoff, signed in or not. A WebView keeps its own
+    // cookie jar, so loading the site directly can show a session the app knows
+    // nothing about: someone signed out of the app was still signed in to the
+    // website inside it, as a different account, with the website's own
+    // navigation showing under the app's. The handoff sets the cookie when
+    // there is a token and clears it when there isn't, which makes the app's
+    // state the one that counts — and sets the marker that hides the web nav.
     log.info("webview.handoff", { path, hasToken: !!token });
     setUri(`${API_BASE}/api/auth/handoff?to=${encodeURIComponent(path)}`);
     setHeaders(token ? { ...base, authorization: `Bearer ${token}` } : base);
-  }, [path, requiresAuth]);
+  }, [path]);
 
   useEffect(() => {
     // build is async and every setState in it runs after an await, so no

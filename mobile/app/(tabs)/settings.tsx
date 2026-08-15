@@ -1,17 +1,50 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useAuth } from "@/lib/auth";
 import { shareInvitation } from "@/lib/reach";
 import { API_BASE, APP_VERSION, VERSION_CODE, invitationUrl } from "@/lib/config";
 import { clearCache } from "@/lib/inbox";
+import { hasPermission, canAskAgain, requestPermission } from "@/lib/notifications";
 import { reportHandled } from "@/lib/crash";
 import { colors, radius, spacing, type } from "@/lib/theme";
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
+  const [pushState, setPushState] = useState<"on" | "off" | "blocked">("off");
+
+  // Re-read on focus, because the answer can change in Android settings while
+  // the app is in the background and a stale "Off" here is a lie.
+  useFocusEffect(
+    useCallback(() => {
+      void (async () => {
+        if (await hasPermission()) setPushState("on");
+        else setPushState((await canAskAgain()) ? "off" : "blocked");
+      })();
+    }, [])
+  );
+
+  const enableNotifications = async () => {
+    if (pushState === "on") {
+      // Already on: the only thing left to change lives in Android settings.
+      void Linking.openSettings();
+      return;
+    }
+    if (pushState === "blocked") {
+      // Android will not show the dialog again, so sending them anywhere else
+      // would just be a button that does nothing.
+      Alert.alert(
+        "Turn notifications on in Settings",
+        "Android won't ask again, so this has to be changed in the system settings for Whobela.",
+        [{ text: "Not now", style: "cancel" }, { text: "Open settings", onPress: () => void Linking.openSettings() }]
+      );
+      return;
+    }
+    const granted = await requestPermission();
+    setPushState(granted ? "on" : "blocked");
+  };
 
   if (!user) return null;
 
@@ -58,11 +91,20 @@ export default function SettingsScreen() {
       </Section>
 
       <Section title="Settings">
+        {/* A real control, not a shortcut to the system screen. Someone who
+            comes looking for this has decided they want notifications, and the
+            contextual prompt on the inbox only appears after an answer has
+            already arrived — which is too late for the person actively
+            searching the settings for it. */}
         <Row
           icon="notifications"
           label="Notifications"
-          hint="Opens Android settings"
-          onPress={() => void Linking.openSettings()}
+          hint={
+            pushState === "on" ? "On — you'll be told the moment someone answers"
+            : pushState === "blocked" ? "Blocked — tap to open Android settings"
+            : "Off — tap to turn on"
+          }
+          onPress={() => void enableNotifications()}
         />
         <Row
           icon="person"

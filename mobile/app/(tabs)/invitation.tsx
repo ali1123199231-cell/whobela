@@ -9,5 +9,5 @@ import { SiteWebView } from "@/components/site-web-view";
  * app's tab bar.
  */
 export default function InvitationScreen() {
-  return <SiteWebView path="/dashboard/page" requiresAuth />;
+  return <SiteWebView path="/dashboard/page" />;
 }
