@@ -56,8 +56,36 @@ model User {
   subscription       Subscription?
   billingClickEvents BillingClickEvent[]
   pushSubscriptions  PushSubscription[]
+  deviceTokens       DeviceToken[]
 
   @@map("users")
+}
+
+// A native app install that has agreed to receive notifications.
+//
+// Deliberately not folded into PushSubscription: FCM hands back one opaque
+// registration token with no VAPID keypair, so three of that model's four
+// columns would sit empty forever. The two also coexist on one account by
+// design — the app on a phone and the site pinned on a laptop are both worth
+// notifying, and neither should silently replace the other.
+model DeviceToken {
+  id       String @id @default(uuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token    String @unique
+  // "android" today. iOS ships nowhere without an Apple Developer account, but
+  // storing the platform now means the sender never has to guess later.
+  platform String
+  // What the install last reported. Makes it possible to tell whether a crash
+  // or a delivery failure is confined to one release.
+  appVersion String?
+  createdAt  DateTime @default(now())
+  // Refreshed whenever the app re-registers, so tokens belonging to phones
+  // nobody has opened in a year can be pruned without guessing.
+  lastSeenAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("device_tokens")
 }
 
 // A single browser that has agreed to receive notifications. One user can have
