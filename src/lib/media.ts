@@ -1,10 +1,53 @@
 import { writeFile, mkdir, unlink, rm } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
+import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import type { MediaKind } from "@/generated/prisma/enums";
 
 const UPLOAD_ROOT = process.env.UPLOAD_DIR ?? path.join(/*turbopackIgnore: true*/ process.cwd(), "uploads");
+
+// Long edge, in pixels. Photos here are shown in a card and a lightbox on a
+// phone, so anything beyond this is bytes nobody sees — and the native camera
+// hands over 4000px originals where the web cropper used to hand over a
+// thumbnail.
+const MAX_DIMENSION = 2000;
+
+/**
+ * Normalises an uploaded photo: corrects its orientation and caps its size.
+ *
+ * `rotate()` with no argument is the important half. Phone cameras record the
+ * sensor's own orientation and leave an EXIF tag saying which way is up; strip
+ * that tag by re-encoding — as any resize does — and every portrait photo
+ * silently lands on its side. Browsers honour the tag when displaying a file
+ * directly, which is why the web upload path never had to care and why this
+ * would have looked like a bug in the app rather than in the server.
+ *
+ * Animated GIFs are passed through untouched: sharp would flatten one to its
+ * first frame, and a still of someone's reaction GIF is worse than a large file.
+ *
+ * Never throws. A photo sharp cannot parse is stored exactly as it arrived —
+ * the format allowlist upstream has already established it is an image, and
+ * losing an upload is worse than storing an awkward one.
+ */
+async function normaliseImage(buffer: Buffer, mimeType: string): Promise<Buffer> {
+  if (mimeType === "image/gif") return buffer;
+
+  try {
+    const pipeline = sharp(buffer)
+      .rotate()
+      .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true });
+
+    // Re-encoded in the format it arrived as, so the extension chosen by the
+    // caller keeps telling the truth.
+    if (mimeType === "image/png") return await pipeline.png({ compressionLevel: 9 }).toBuffer();
+    if (mimeType === "image/webp") return await pipeline.webp({ quality: 82 }).toBuffer();
+    return await pipeline.jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+  } catch (error) {
+    console.error("[media] could not normalise upload, storing original", error);
+    return buffer;
+  }
+}
 
 export async function saveMedia(opts: {
   userId?: string;
@@ -18,7 +61,8 @@ export async function saveMedia(opts: {
   await mkdir(dir, { recursive: true });
   const filename = `${id}.${ext}`;
   const filePath = path.join(dir, filename);
-  const buffer = Buffer.from(await opts.file.arrayBuffer());
+  const original = Buffer.from(await opts.file.arrayBuffer());
+  const buffer = await normaliseImage(original, opts.file.type);
   await writeFile(filePath, buffer);
 
   return prisma.media.create({

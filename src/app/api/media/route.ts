@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { saveMedia } from "@/lib/media";
 
 const MAX_PROFILE_PHOTOS = 6;
-const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
+// Raised from 8MB for the native camera, which produces 10-12MB originals where
+// the web cropper produced a fraction of that. saveMedia downscales whatever
+// arrives, so a large upload costs bandwidth once rather than disk forever —
+// and rejecting the photo someone just took is the worse failure.
+const MAX_FILE_SIZE = 16 * 1024 * 1024; // 16MB
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 export async function POST(request: Request) {
@@ -29,7 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
   }
   if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json({ error: "File too large (max 8MB)" }, { status: 400 });
+    return NextResponse.json({ error: "File too large (max 16MB)" }, { status: 400 });
   }
 
   if (kind === "PROFILE_PHOTO" && userId) {
