@@ -96,6 +96,14 @@
         {
           "calendarPermission": "Whobela adds a date to your calendar when someone says yes."
         }
+      ],
+      [
+        "@sentry/react-native",
+        {
+          "organization": "whobela",
+          "project": "whobela-android",
+          "url": "https://de.sentry.io/"
+        }
       ]
     ],
     "experiments": {
@@ -105,7 +113,8 @@
       "router": {},
       "eas": {
         "projectId": "44d618dc-0439-4171-88ff-c99b4945be03"
-      }
+      },
+      "sentryDsn": "https://12e55671eab652c7d60acb6e28105c4f@o4511915707531264.ingest.de.sentry.io/4511915713626192"
     }
   }
 }

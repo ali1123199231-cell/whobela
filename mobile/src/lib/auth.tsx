@@ -3,6 +3,7 @@ import { AppState, type AppStateStatus } from "react-native";
 import { apiFetch, setToken, clearToken, getToken, getCachedUser, setCachedUser, SessionExpiredError } from "./api";
 import { registerForPush, unregisterPush } from "./notifications";
 import { log } from "./log";
+import { setSentryUser } from "./sentry";
 
 export type User = {
   id: string;
@@ -87,6 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // nobody re-registered is a phone that has silently stopped being notified.
   useEffect(() => {
     if (user) void registerForPush();
+    // Id only — Sentry must never receive an email address from this app.
+    setSentryUser(user?.id ?? null);
   }, [user]);
 
   // Also refreshed whenever the app comes back to the foreground, not only on a

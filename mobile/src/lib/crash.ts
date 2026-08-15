@@ -3,14 +3,16 @@ import * as Device from "expo-device";
 import { API_BASE, CLIENT_HEADER, CLIENT_ID, APP_VERSION, VERSION_CODE } from "./config";
 import { getToken } from "./api";
 import { log } from "./log";
+import * as Sentry from "@sentry/react-native";
 
 /**
  * Reports crashes to our own server.
  *
- * Play Console shows crash clusters but strips the context that says which
- * screen and which account; Sentry would do better but is not wired up. This is
- * the minimum that beats silence: the stack reaches a log we can grep, tagged
- * with the build that produced it.
+ * Runs alongside Sentry rather than instead of it. This path puts the stack in
+ * the server log right next to the requests that preceded it, which is what you
+ * want while debugging; Sentry groups the same crash across users and releases,
+ * which is what you want once a build is live. Play Console shows clusters but
+ * strips the context that says which screen and which account.
  *
  * Deliberately does not use apiFetch. That path throws on failure and logs
  * errors of its own, which during a crash is how you get a loop.
@@ -45,6 +47,12 @@ export function reportHandled(error: unknown, context: string) {
   const e = error instanceof Error ? error : new Error(String(error));
   log.error("crash.handled", { context, message: e.message });
   void report({ message: e.message, stack: e.stack, context, fatal: false });
+  try {
+    Sentry.captureException(e, { tags: { context } });
+  } catch {
+    // Sentry may not be initialised (no DSN in development). Our own report
+    // has already gone either way.
+  }
 }
 
 /**

@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { shareInvitation } from "@/lib/reach";
 import { API_BASE, APP_VERSION, VERSION_CODE, invitationUrl } from "@/lib/config";
 import { clearCache } from "@/lib/inbox";
+import { reportHandled } from "@/lib/crash";
 import { colors, radius, spacing, type } from "@/lib/theme";
 
 export default function SettingsScreen() {
@@ -102,9 +103,24 @@ export default function SettingsScreen() {
         />
       </Section>
 
-      <Text style={styles.version}>
-        Whobela {APP_VERSION} ({VERSION_CODE})
-      </Text>
+      {/* Long-press sends a deliberate test error through both reporting
+          paths. Deliberately shipped: after a release the only way to know
+          reporting still works is to make it report something, and a version
+          label nobody long-presses by accident is the least intrusive place to
+          put that. */}
+      <Pressable
+        onLongPress={() => {
+          reportHandled(new Error("Whobela reporting self-test"), "settings.version.longpress");
+          Alert.alert("Test error sent", "If reporting is working, this appears in the logs and in Sentry.");
+        }}
+        delayLongPress={1200}
+        accessibilityRole="button"
+        accessibilityLabel={`Whobela version ${APP_VERSION}. Long press to send a test error report.`}
+      >
+        <Text style={styles.version}>
+          Whobela {APP_VERSION} ({VERSION_CODE})
+        </Text>
+      </Pressable>
     </ScrollView>
   );
 }

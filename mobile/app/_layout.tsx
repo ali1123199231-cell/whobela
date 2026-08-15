@@ -8,6 +8,7 @@ import { apiFetch } from "@/lib/api";
 import { VERSION_CODE } from "@/lib/config";
 import { routeForNotification, ensureChannel } from "@/lib/notifications";
 import { installCrashReporter } from "@/lib/crash";
+import { initSentry } from "@/lib/sentry";
 import { UpdateRequired } from "@/components/update-required";
 import { colors } from "@/lib/theme";
 
@@ -39,9 +40,10 @@ export default function RootLayout() {
     void ensureChannel();
   }, []);
 
-  // Installed before anything else can throw, so a crash on the very first
-  // screen still reaches a log rather than just closing the app.
+  // Both installed before anything else can throw, so a crash on the very
+  // first screen still reaches somewhere rather than just closing the app.
   useEffect(() => {
+    initSentry();
     installCrashReporter();
   }, []);
 
