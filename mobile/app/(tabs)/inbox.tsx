@@ -19,9 +19,8 @@ export default function InboxScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   const load = useCallback(
-    async ({ isRefresh }: { isRefresh: boolean }) => {
+    async () => {
       if (!user) return;
-      if (isRefresh) setRefreshing(true);
 
       try {
         const page = await fetchInbox();
@@ -53,7 +52,17 @@ export default function InboxScreen() {
   );
 
   useEffect(() => {
-    void load({ isRefresh: false });
+    // load is async and every setState in it runs after an await on the
+    // network, so nothing is set during the mount render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load();
+  }, [load]);
+
+  // The spinner is started by the gesture rather than inside load, so mounting
+  // the screen doesn't set state synchronously inside an effect.
+  const refresh = useCallback(() => {
+    setRefreshing(true);
+    void load();
   }, [load]);
 
   const loadMore = useCallback(async () => {
@@ -80,7 +89,7 @@ export default function InboxScreen() {
       <ScreenMessage
         title="Couldn't load your answers"
         body={error}
-        action={{ label: "Try again", onPress: () => void load({ isRefresh: false }) }}
+        action={{ label: "Try again", onPress: () => void load() }}
       />
     );
   }
@@ -95,7 +104,7 @@ export default function InboxScreen() {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={() => void load({ isRefresh: true })}
+          onRefresh={refresh}
           tintColor={colors.rose600}
           colors={[colors.rose600]}
         />

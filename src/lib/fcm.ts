@@ -155,10 +155,19 @@ export async function sendFcmMessage(message: FcmMessage): Promise<FcmResult> {
     if (res.ok) return "sent";
 
     const text = await res.text().catch(() => "");
-    // 404 is UNREGISTERED; 400 with this status is a token that was never
-    // valid. Anything else — 429, 503, a network blip — is likely transient
-    // and the token is worth keeping.
-    if (res.status === 404 || (res.status === 400 && text.includes("INVALID_ARGUMENT"))) {
+
+    // 404 means UNREGISTERED — the app was uninstalled and the token is dead.
+    if (res.status === 404) return "unregistered";
+
+    // 400 INVALID_ARGUMENT is NOT sufficient on its own, however tempting it
+    // looks. FCM returns exactly that status for a malformed *payload* as well
+    // as a malformed token, so treating every 400 as a dead token means the
+    // first send after a payload bug deletes every device row in the database
+    // — silently, permanently, and presenting as "notifications just stopped".
+    // Verified against the live API: a bad token says "The registration token
+    // is not a valid FCM registration token", while a bad payload names the
+    // offending field instead. Only the former is the device's fault.
+    if (res.status === 400 && /registration token/i.test(text)) {
       return "unregistered";
     }
     console.error("[fcm] send failed", res.status, text);

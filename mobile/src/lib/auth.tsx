@@ -63,6 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // refresh awaits the keystore before it touches state, so the first
+    // update lands in a later tick rather than cascading a render on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
   }, [refresh]);
 

@@ -24,10 +24,14 @@ export function SiteWebView({ path, requiresAuth }: { path: string; requiresAuth
   const canGoBack = useRef(false);
 
   const build = useCallback(async () => {
-    setFailed(false);
+    // Read unconditionally, so every path through this function reaches its
+    // state updates after an await rather than during the mount render.
+    const token = await getToken();
+    const base = { [CLIENT_HEADER]: CLIENT_ID };
+
     if (!requiresAuth) {
       setUri(`${API_BASE}${path}`);
-      setHeaders({ [CLIENT_HEADER]: CLIENT_ID });
+      setHeaders(base);
       return;
     }
 
@@ -35,15 +39,15 @@ export function SiteWebView({ path, requiresAuth }: { path: string; requiresAuth
     // authenticates by bearer token. The handoff endpoint takes the token on
     // this first request, sets the cookie and redirects — so the token stays
     // out of the URL, and out of anything that logs one.
-    const token = await getToken();
     setUri(`${API_BASE}/api/auth/handoff?to=${encodeURIComponent(path)}`);
-    setHeaders({
-      [CLIENT_HEADER]: CLIENT_ID,
-      ...(token ? { authorization: `Bearer ${token}` } : {}),
-    });
+    setHeaders(token ? { ...base, authorization: `Bearer ${token}` } : base);
   }, [path, requiresAuth]);
 
   useEffect(() => {
+    // build is async and every setState in it runs after an await, so no
+    // cascading render happens; the rule flags the call site without
+    // tracking that.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void build();
   }, [build]);
 
@@ -82,7 +86,16 @@ export function SiteWebView({ path, requiresAuth }: { path: string; requiresAuth
       <ScreenMessage
         title="Couldn't load the editor"
         body="Check your connection and try again."
-        action={{ label: "Try again", onPress: () => void build() }}
+        action={{
+          label: "Try again",
+          onPress: () => {
+            // Cleared here rather than inside build, so the effect that calls
+            // build on mount doesn't set state synchronously and cost a render.
+            setFailed(false);
+            setLoading(true);
+            void build();
+          },
+        }}
       />
     );
   }

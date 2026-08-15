@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/lib/auth";
 import { Button, Field, Banner } from "@/components/ui";
 import { colors, spacing, type } from "@/lib/theme";
 import { API_BASE } from "@/lib/config";
 import { emailProblem } from "@/lib/validation";
-import { Linking } from "react-native";
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
