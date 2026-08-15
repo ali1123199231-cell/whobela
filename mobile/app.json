@@ -2,6 +2,7 @@
   "expo": {
     "name": "Whobela",
     "slug": "whobela",
+    "owner": "ali1123199231",
     "scheme": "whobela",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +14,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#FFF1F2"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "android": {
       "package": "com.whobela.app",
       "versionCode": 2,
@@ -23,7 +26,12 @@
         "backgroundColor": "#E11D48"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": ["android.permission.CAMERA", "android.permission.POST_NOTIFICATIONS"],
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.SYSTEM_ALERT_WINDOW"
@@ -33,10 +41,21 @@
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "https", "host": "whobela.com", "pathPrefix": "/dashboard" },
-            { "scheme": "https", "host": "whobela.com", "pathPrefix": "/create" }
+            {
+              "scheme": "https",
+              "host": "whobela.com",
+              "pathPrefix": "/dashboard"
+            },
+            {
+              "scheme": "https",
+              "host": "whobela.com",
+              "pathPrefix": "/create"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -81,6 +100,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "44d618dc-0439-4171-88ff-c99b4945be03"
+      }
     }
   }
 }
