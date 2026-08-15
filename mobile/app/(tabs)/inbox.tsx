@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, View, ActivityIndicator } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { useAuth } from "@/lib/auth";
 import { fetchInbox, readCache, writeCache, type InboxResponse } from "@/lib/inbox";
 import { ResponseCard } from "@/components/response-card";
@@ -51,12 +52,15 @@ export default function InboxScreen() {
     [user, signOut]
   );
 
-  useEffect(() => {
-    // load is async and every setState in it runs after an await on the
-    // network, so nothing is set during the mount render.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void load();
-  }, [load]);
+  // Refetched every time the tab is focused, not just on mount. Tapping a
+  // notification routes here, and an inbox still showing the state from before
+  // that answer arrived contradicts the notification that brought you to it —
+  // which reads as the app being broken rather than merely stale.
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load])
+  );
 
   // The spinner is started by the gesture rather than inside load, so mounting
   // the screen doesn't set state synchronously inside an effect.

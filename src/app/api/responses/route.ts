@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { format, parseISO } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { responseSubmitSchema } from "@/lib/validation";
@@ -110,9 +111,13 @@ export async function POST(request: Request) {
   // Not gated on emailNotificationsEnabled: agreeing to notifications in the
   // browser is its own explicit opt-in, and someone who muted email may well
   // have muted it *because* they'd rather be told this way.
+  // "Saturday, August 16", not "2026-08-16". A notification is read in a glance
+  // on a lock screen, and an ISO date there reads like a machine talking.
+  const friendlyDate = format(parseISO(data.chosenDate), "EEEE, MMMM d");
+
   void sendPushToUser(datePage.userId, {
     title: `${data.recipientName} said yes 💌`,
-    body: `${data.chosenDate} at ${data.chosenTime}. Tap to see their details.`,
+    body: `${friendlyDate} at ${data.chosenTime}. Tap to see their details.`,
     url: "/dashboard/inbox",
     // Tagging per response, so two people answering while the phone is in a
     // pocket produce two notifications. The service worker's fallback tag is a

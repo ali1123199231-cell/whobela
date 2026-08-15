@@ -57,8 +57,9 @@ export function Button({
 export function Field({
   label,
   error,
+  hint,
   ...props
-}: TextInputProps & { label: string; error?: string | null }) {
+}: TextInputProps & { label: string; error?: string | null; hint?: string }) {
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -68,6 +69,11 @@ export function Field({
         placeholderTextColor={colors.rose300}
         accessibilityLabel={label}
       />
+      {/* A rule this long belongs under the field, not inside it: as a
+          placeholder it wraps past the input's height and gets clipped
+          mid-sentence, so the one thing it needs to say is the part you
+          can't read. */}
+      {!!hint && !error && <Text style={styles.fieldHint}>{hint}</Text>}
       {!!error && <Text style={styles.fieldError}>{error}</Text>}
     </View>
   );
@@ -138,6 +144,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   inputError: { borderColor: colors.danger },
+  fieldHint: { ...type.small, fontSize: 12 },
   fieldError: { ...type.small, color: colors.danger },
 
   screenMessage: {

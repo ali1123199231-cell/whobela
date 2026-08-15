@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { AppState } from "react-native";
 import { apiFetch, setToken, clearToken, getToken, SessionExpiredError } from "./api";
 import { registerForPush, unregisterPush } from "./notifications";
 
@@ -75,6 +76,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (user) void registerForPush();
   }, [user]);
+
+  // Also refreshed whenever the app comes back to the foreground, not only on a
+  // cold start. Things that change the account happen elsewhere — verifying an
+  // email from the inbox, changing a password on the website — and an app that
+  // only notices on relaunch shows people stale facts about themselves for as
+  // long as it stays in memory.
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") void refresh();
+    });
+    return () => subscription.remove();
+  }, [refresh]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const data = await apiFetch<{ ok: true; token: string }>("/api/auth/login", {

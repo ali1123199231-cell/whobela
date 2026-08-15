@@ -55,7 +55,8 @@ export default function SignupScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Create your account</Text>
+        {/* No heading here: the navigation bar above already says it, and
+            repeating it wastes the top third of a phone screen. */}
         <Text style={styles.subtitle}>
           Your invitation is saved as soon as you do, and answers arrive here.
         </Text>
@@ -97,7 +98,7 @@ export default function SignupScreen() {
           error={fieldErrors.password ?? undefined}
           secureTextEntry
           autoComplete="new-password"
-          placeholder={PASSWORD_HINT}
+          hint={PASSWORD_HINT}
         />
 
         <Button label="Create account" onPress={submit} loading={busy} />
@@ -110,6 +111,5 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.rose50 },
   content: { padding: spacing.lg, gap: spacing.md },
-  title: type.title,
   subtitle: { ...type.small, marginBottom: spacing.sm },
 });

@@ -12,8 +12,7 @@ import type { InboxResponse } from "./inbox";
  * writing straight to "the first writable one" can silently file a date into
  * whichever account happened to sort first — a work calendar shared with
  * colleagues, for instance. The form shows exactly what is being saved and
- * where, needs only write-only permission, and lets the date be adjusted before
- * it lands.
+ * where, and lets the date be adjusted before it lands.
  */
 
 const DEFAULT_DURATION_MINUTES = 120;
@@ -51,7 +50,12 @@ export async function addToCalendar(response: InboxResponse): Promise<CalendarOu
   const start = toStartDate(response);
   if (!start) return "unavailable";
 
-  const { status } = await Calendar.requestCalendarPermissions(true);
+  // Full permission, not write-only. "Write-only" is an iOS notion; on Android
+  // passing it returns granted without ever showing a dialog, and the read that
+  // follows then finds nothing — which surfaced on a phone with three calendars
+  // as "No calendar found". Choosing where the event goes means listing the
+  // calendars, and listing them requires READ_CALENDAR.
+  const { status } = await Calendar.requestCalendarPermissions();
   if (status !== "granted") return "denied";
 
   const calendars = await Calendar.getCalendars();
