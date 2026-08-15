@@ -1,5 +1,6 @@
 import { Linking, Share } from "react-native";
 import type { InboxResponse } from "./inbox";
+import { log } from "./log";
 
 /**
  * Getting from "they said yes" to actually talking to them.
@@ -98,10 +99,12 @@ export function reachOptions(response: InboxResponse): ReachOption[] {
 export async function openReach(option: ReachOption): Promise<boolean> {
   try {
     const supported = await Linking.canOpenURL(option.url);
+    log.info("reach.open", { key: option.key, supported });
     if (!supported) return false;
     await Linking.openURL(option.url);
     return true;
-  } catch {
+  } catch (error) {
+    log.error("reach.failed", { key: option.key, error: error as Error });
     return false;
   }
 }
@@ -109,6 +112,7 @@ export async function openReach(option: ReachOption): Promise<boolean> {
 /** The native share sheet, for sending the invitation link to someone. */
 export async function shareInvitation(url: string, firstName: string | null): Promise<void> {
   const opener = firstName ? `${firstName} has a question for you` : "I have a question for you";
+  log.info("share.opened", { url });
   await Share.share({
     message: `${opener} 💌 ${url}`,
   });

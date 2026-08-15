@@ -7,6 +7,7 @@ import { getLiveStatus } from "@/lib/date-page";
 import { sendNewResponseEmail } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
 import { DEFAULT_SCHEDULING_CONFIG, isValidBookingSlot, withDefaults } from "@/lib/date-page-defaults";
+import { log, clientOf, timer } from "@/lib/log";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
@@ -21,8 +22,12 @@ const MAX_LIMIT = 50;
  * shift the window and hide the row underneath it.
  */
 export async function GET(request: Request) {
+  const elapsed = timer();
   const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) {
+    log.info("inbox.list.unauthorized", { client: clientOf(request) });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const url = new URL(request.url);
   const requested = Number(url.searchParams.get("limit"));
@@ -43,6 +48,11 @@ export async function GET(request: Request) {
 
   const hasMore = rows.length > limit;
   const page = hasMore ? rows.slice(0, limit) : rows;
+
+  log.info("inbox.list.ok", {
+    userId: session.userId, client: clientOf(request),
+    limit, cursor: cursor ?? null, returned: page.length, hasMore, ms: elapsed(),
+  });
 
   return NextResponse.json({
     responses: page.map((r) => ({
@@ -78,12 +88,18 @@ export async function POST(request: Request) {
     include: { user: true },
   });
   if (!datePage || !getLiveStatus(datePage).isLive) {
+    log.warn("response.rejected.notLive", { datePageId, exists: !!datePage });
     return NextResponse.json({ error: "This invitation is no longer available" }, { status: 404 });
   }
 
   const data = parsed.data;
   const schedulingConfig = withDefaults(datePage.schedulingConfig, DEFAULT_SCHEDULING_CONFIG);
   if (!isValidBookingSlot(schedulingConfig, data.chosenDate, data.chosenTime)) {
+    log.warn("response.rejected.badSlot", {
+      datePageId, chosenDate: data.chosenDate, chosenTime: data.chosenTime,
+      availableDays: schedulingConfig.availableDays,
+      startHour: schedulingConfig.startHour, endHour: schedulingConfig.endHour,
+    });
     return NextResponse.json({ error: "That date/time isn't available" }, { status: 400 });
   }
 
@@ -99,6 +115,13 @@ export async function POST(request: Request) {
       chosenTime: data.chosenTime,
       timezone: data.timezone,
     },
+  });
+
+  log.info("response.created", {
+    responseId: response.id, datePageId, userId: datePage.userId,
+    hasMessage: !!data.recipientMessage, hasPhoto: !!data.recipientPhotoMediaId,
+    contactKeys: Object.keys(data.recipientContact ?? {}),
+    preferences: (data.preferenceSelections ?? []).length,
   });
 
   if (datePage.user.emailNotificationsEnabled) {

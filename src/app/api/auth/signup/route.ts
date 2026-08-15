@@ -4,6 +4,7 @@ import { hashPassword, createSessionToken, setSessionCookie, isNativeClient } fr
 import { signupSchema } from "@/lib/validation";
 import { sendVerificationCode } from "@/lib/email-verification";
 import { countryFromRequest } from "@/lib/geo";
+import { log, clientOf } from "@/lib/log";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -30,6 +31,10 @@ export async function POST(request: Request) {
     where: { OR: [{ email }, { username }] },
   });
   if (existing) {
+    log.warn("auth.signup.conflict", {
+      client: clientOf(request),
+      reason: existing.email === email ? "email" : "username",
+    });
     return NextResponse.json(
       { error: existing.email === email ? "Email already in use" : "Username already taken" },
       { status: 409 }
@@ -69,5 +74,9 @@ export async function POST(request: Request) {
   await setSessionCookie(token);
   await sendVerificationCode(user, firstName);
 
-  return NextResponse.json(isNativeClient(request) ? { ok: true, token } : { ok: true });
+  const native = isNativeClient(request);
+  log.info("auth.signup.ok", {
+    userId: user.id, client: clientOf(request), signupCountry, tokenInBody: native,
+  });
+  return NextResponse.json(native ? { ok: true, token } : { ok: true });
 }

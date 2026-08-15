@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { log, clientOf } from "@/lib/log";
 
 // FCM registration tokens are opaque and have no documented maximum, so the
 // bound is generous rather than exact — long enough for anything Google has
@@ -33,6 +34,11 @@ export async function POST(request: Request) {
   // Upserting on the token reassigns the phone when a second account signs in
   // on it, which is the behaviour you want: notifications should follow whoever
   // is actually logged in, not whoever got there first.
+  log.info("push.device.register", {
+    userId: session.userId, platform, appVersion: appVersion ?? null,
+    client: clientOf(request), tokenLength: token.length,
+  });
+
   await prisma.deviceToken.upsert({
     where: { token },
     create: { token, platform, appVersion, userId: session.userId },
@@ -52,7 +58,10 @@ export async function DELETE(request: Request) {
   if (!token) return NextResponse.json({ error: "Missing token" }, { status: 400 });
 
   // Scoped to the caller so a token can't be unregistered by whoever guesses it.
-  await prisma.deviceToken.deleteMany({ where: { token, userId: session.userId } });
+  const removed = await prisma.deviceToken.deleteMany({ where: { token, userId: session.userId } });
+  log.info("push.device.unregister", {
+    userId: session.userId, removed: removed.count, client: clientOf(request),
+  });
 
   return NextResponse.json({ ok: true });
 }

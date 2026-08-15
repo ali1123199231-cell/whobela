@@ -8,6 +8,7 @@ import { PushPrompt } from "@/components/push-prompt";
 import { ScreenMessage, Banner } from "@/components/ui";
 import { formatCacheAge } from "@/lib/format";
 import { SessionExpiredError } from "@/lib/api";
+import { log } from "@/lib/log";
 import { colors, spacing, type } from "@/lib/theme";
 
 export default function InboxScreen() {
@@ -25,6 +26,7 @@ export default function InboxScreen() {
 
       try {
         const page = await fetchInbox();
+        log.info("inbox.loaded", { count: page.responses.length, hasMore: !!page.nextCursor });
         setResponses(page.responses);
         setCursor(page.nextCursor);
         setCachedAt(null);
@@ -38,6 +40,7 @@ export default function InboxScreen() {
         // Fall back to whatever this account last saw. Being underground is
         // not a reason to be unable to find out who said yes.
         const cached = await readCache(user.id);
+        log.warn("inbox.offline", { usedCache: !!cached, cachedCount: cached?.responses.length ?? 0 });
         if (cached) {
           setResponses(cached.responses);
           setCachedAt(cached.fetchedAt);

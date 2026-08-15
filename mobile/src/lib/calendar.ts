@@ -1,5 +1,6 @@
 import * as Calendar from "expo-calendar";
 import type { InboxResponse } from "./inbox";
+import { log } from "./log";
 
 /**
  * Putting an accepted date into the phone's calendar.
@@ -67,18 +68,35 @@ function toStartDate(response: InboxResponse): Date | null {
 
 export async function addToCalendar(response: InboxResponse): Promise<CalendarOutcome> {
   const start = toStartDate(response);
-  if (!start) return "unreadable";
+  if (!start) {
+    log.error("calendar.unreadable", {
+      responseId: response.id, chosenDate: response.chosenDate, chosenTime: response.chosenTime,
+    });
+    return "unreadable";
+  }
+  log.info("calendar.parsed", {
+    responseId: response.id, raw: `${response.chosenDate} ${response.chosenTime}`,
+    startsAt: start.toISOString(),
+  });
 
   // Full permission, not write-only: `writeOnly` is documented as iOS-only, and
   // picking which calendar the event lands in means listing them, which needs
   // READ_CALENDAR either way.
   const { status } = await Calendar.requestCalendarPermissions();
+  log.info("calendar.permission", { status });
   if (status !== "granted") return "denied";
 
   const calendars = await Calendar.getCalendars();
+  log.info("calendar.found", {
+    total: calendars.length,
+    writable: calendars.filter((c) => c.allowsModifications).length,
+  });
   const target = calendars.find((c) => c.isPrimary && c.allowsModifications)
     ?? calendars.find((c) => c.allowsModifications);
-  if (!target) return "unavailable";
+  if (!target) {
+    log.warn("calendar.noWritable", { total: calendars.length });
+    return "unavailable";
+  }
 
   const end = new Date(start.getTime() + DEFAULT_DURATION_MINUTES * 60 * 1000);
   const notes = [
@@ -96,6 +114,7 @@ export async function addToCalendar(response: InboxResponse): Promise<CalendarOu
     notes,
   });
 
+  log.info("calendar.dialogClosed", { action: result?.action ?? null });
   if (result?.action === "saved") return "saved";
   if (result?.action === "canceled" || result?.action === "deleted") return "cancelled";
   // Android's `done`.

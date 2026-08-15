@@ -6,6 +6,7 @@ import { API_BASE, CLIENT_HEADER, CLIENT_ID } from "@/lib/config";
 import { getToken } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { ScreenMessage } from "./ui";
+import { log } from "@/lib/log";
 
 /**
  * Hosts the invitation editor, which is the existing web UI.
@@ -30,6 +31,7 @@ export function SiteWebView({ path, requiresAuth }: { path: string; requiresAuth
     const base = { [CLIENT_HEADER]: CLIENT_ID };
 
     if (!requiresAuth) {
+      log.info("webview.anonymous", { path });
       setUri(`${API_BASE}${path}`);
       setHeaders(base);
       return;
@@ -39,6 +41,7 @@ export function SiteWebView({ path, requiresAuth }: { path: string; requiresAuth
     // authenticates by bearer token. The handoff endpoint takes the token on
     // this first request, sets the cookie and redirects — so the token stays
     // out of the URL, and out of anything that logs one.
+    log.info("webview.handoff", { path, hasToken: !!token });
     setUri(`${API_BASE}/api/auth/handoff?to=${encodeURIComponent(path)}`);
     setHeaders(token ? { ...base, authorization: `Bearer ${token}` } : base);
   }, [path, requiresAuth]);
@@ -76,6 +79,7 @@ export function SiteWebView({ path, requiresAuth }: { path: string; requiresAuth
    */
   const onShouldStart = useCallback((event: WebViewNavigation) => {
     const isOurs = event.url.startsWith(API_BASE);
+    log.debug("webview.navigate", { url: event.url.slice(0, 120), external: !isOurs });
     if (isOurs) return true;
     void Linking.openURL(event.url);
     return false;
@@ -128,14 +132,19 @@ export function SiteWebView({ path, requiresAuth }: { path: string; requiresAuth
         onNavigationStateChange={(state) => {
           canGoBack.current = state.canGoBack;
         }}
-        onLoadEnd={() => setLoading(false)}
-        onError={() => {
+        onLoadEnd={() => {
+          log.info("webview.loaded", { path });
+          setLoading(false);
+        }}
+        onError={({ nativeEvent }) => {
+          log.error("webview.error", { path, description: nativeEvent.description });
           setLoading(false);
           setFailed(true);
         }}
         onHttpError={({ nativeEvent }) => {
           // A 401 here means the handoff was refused; anything 500 and up is
           // the server failing. Both are worth showing rather than a blank page.
+          log.warn("webview.httpError", { path, status: nativeEvent.statusCode });
           if (nativeEvent.statusCode >= 500 || nativeEvent.statusCode === 401) setFailed(true);
         }}
         style={styles.web}

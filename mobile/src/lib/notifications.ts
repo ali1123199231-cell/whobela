@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 import { apiFetch } from "./api";
 import { APP_VERSION } from "./config";
 import { colors } from "./theme";
+import { log } from "./log";
 
 const CHANNEL_ID = "responses";
 
@@ -61,6 +62,7 @@ export async function canAskAgain(): Promise<boolean> {
 export async function requestPermission(): Promise<boolean> {
   await ensureChannel();
   const { status } = await Notifications.requestPermissionsAsync();
+  log.info("push.permission.result", { status });
   if (status !== "granted") return false;
   await registerForPush();
   return true;
@@ -75,20 +77,28 @@ export async function requestPermission(): Promise<boolean> {
 export async function registerForPush(): Promise<void> {
   try {
     if (Platform.OS !== "android") return;
-    if (!(await hasPermission())) return;
+    if (!(await hasPermission())) {
+      log.debug("push.register.skipped", { reason: "no permission" });
+      return;
+    }
 
     await ensureChannel();
     const token = await Notifications.getDevicePushTokenAsync();
-    if (!token?.data) return;
+    if (!token?.data) {
+      log.warn("push.register.noToken", { hint: "FCM returned nothing" });
+      return;
+    }
+    log.info("push.register.token", { type: token.type, length: token.data.length });
 
     await apiFetch("/api/push/device", {
       method: "POST",
       body: { token: token.data, platform: "android", appVersion: APP_VERSION },
     });
+    log.info("push.register.ok", { appVersion: APP_VERSION });
   } catch (error) {
     // Never fatal. Failing to register is a notification someone misses, not a
     // reason to interrupt whatever they opened the app to do.
-    console.warn("[push] could not register this device", error);
+    log.error("push.register.failed", { error: error as Error });
   }
 }
 
@@ -113,6 +123,7 @@ export async function unregisterPush(): Promise<void> {
  */
 export function routeForNotification(data: unknown): string | null {
   const url = (data as { url?: unknown } | null)?.url;
+  log.info("push.tapped", { url: typeof url === "string" ? url : null });
   if (typeof url !== "string") return null;
   if (url.startsWith("/dashboard/inbox")) return "/(tabs)/inbox";
   if (url.startsWith("/dashboard")) return "/(tabs)/invitation";

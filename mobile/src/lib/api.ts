@@ -1,5 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import { API_BASE, CLIENT_HEADER, CLIENT_ID } from "./config";
+import { log } from "./log";
 
 const TOKEN_KEY = "whobela.session";
 
@@ -65,6 +66,9 @@ export async function apiFetch<T>(path: string, options: Options = {}): Promise<
     if (token) headers.authorization = `Bearer ${token}`;
   }
 
+  const started = Date.now();
+  log.debug("api.request", { method, path, authed: !anonymous });
+
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${path}`, {
@@ -76,11 +80,16 @@ export async function apiFetch<T>(path: string, options: Options = {}): Promise<
   } catch (error) {
     // fetch only rejects on transport failure, so this is genuinely "no
     // network" rather than an error the server chose to send.
-    if ((error as Error).name === "AbortError") throw error;
+    if ((error as Error).name === "AbortError") {
+      log.debug("api.aborted", { method, path });
+      throw error;
+    }
+    log.warn("api.offline", { method, path, ms: Date.now() - started, error: error as Error });
     throw new ApiError(0, "No connection. Check your signal and try again.");
   }
 
   if (res.status === 401 && !anonymous) {
+    log.warn("api.sessionExpired", { method, path, ms: Date.now() - started });
     throw new SessionExpiredError();
   }
 
@@ -89,9 +98,11 @@ export async function apiFetch<T>(path: string, options: Options = {}): Promise<
   if (!res.ok) {
     const message =
       (payload as { error?: string } | null)?.error ?? "Something went wrong. Try again.";
+    log.error("api.error", { method, path, status: res.status, message, ms: Date.now() - started });
     throw new ApiError(res.status, message);
   }
 
+  log.info("api.ok", { method, path, status: res.status, ms: Date.now() - started });
   return payload as T;
 }
 
@@ -114,12 +125,21 @@ export async function apiUpload<T>(
   const headers: Record<string, string> = { [CLIENT_HEADER]: CLIENT_ID };
   if (token) headers.authorization = `Bearer ${token}`;
 
+  const started = Date.now();
+  log.info("api.upload.start", { path, name: file.name, type: file.type });
+
   const res = await fetch(`${API_BASE}${path}`, { method: "POST", headers, body: form });
-  if (res.status === 401) throw new SessionExpiredError();
+  if (res.status === 401) {
+    log.warn("api.upload.sessionExpired", { path });
+    throw new SessionExpiredError();
+  }
 
   const payload = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new ApiError(res.status, (payload as { error?: string } | null)?.error ?? "Upload failed.");
+    const message = (payload as { error?: string } | null)?.error ?? "Upload failed.";
+    log.error("api.upload.failed", { path, status: res.status, message, ms: Date.now() - started });
+    throw new ApiError(res.status, message);
   }
+  log.info("api.upload.ok", { path, ms: Date.now() - started });
   return payload as T;
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, createSessionToken, isNativeClient } from "@/lib/auth";
+import { log, clientOf } from "@/lib/log";
 
 /**
  * Who am I, and is my token still good?
@@ -17,6 +18,7 @@ import { getSession, createSessionToken, isNativeClient } from "@/lib/auth";
 export async function GET(request: Request) {
   const session = await getSession();
   if (!session) {
+    log.info("auth.session.anonymous", { client: clientOf(request) });
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
@@ -32,6 +34,7 @@ export async function GET(request: Request) {
     },
   });
   if (!user) {
+    log.warn("auth.session.userGone", { userId: session.userId, client: clientOf(request) });
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
@@ -47,6 +50,7 @@ export async function GET(request: Request) {
   };
 
   if (!isNativeClient(request)) {
+    log.debug("auth.session.ok", { userId: user.id, client: "web", rotated: false });
     return NextResponse.json(body);
   }
 
@@ -58,6 +62,9 @@ export async function GET(request: Request) {
     email: user.email,
     username: user.username,
     tokenVersion: session.tokenVersion,
+  });
+  log.info("auth.session.ok", {
+    userId: user.id, client: clientOf(request), rotated: true, emailVerified: user.emailVerifiedAt !== null,
   });
   return NextResponse.json({ ...body, token });
 }

@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import type { MediaKind } from "@/generated/prisma/enums";
+import { log } from "@/lib/log";
 
 const UPLOAD_ROOT = process.env.UPLOAD_DIR ?? path.join(/*turbopackIgnore: true*/ process.cwd(), "uploads");
 
@@ -31,7 +32,10 @@ const MAX_DIMENSION = 2000;
  * losing an upload is worse than storing an awkward one.
  */
 async function normaliseImage(buffer: Buffer, mimeType: string): Promise<Buffer> {
-  if (mimeType === "image/gif") return buffer;
+  if (mimeType === "image/gif") {
+    log.debug("media.normalise.skipped", { reason: "animated gif", bytes: buffer.length });
+    return buffer;
+  }
 
   try {
     const pipeline = sharp(buffer)
@@ -40,11 +44,21 @@ async function normaliseImage(buffer: Buffer, mimeType: string): Promise<Buffer>
 
     // Re-encoded in the format it arrived as, so the extension chosen by the
     // caller keeps telling the truth.
-    if (mimeType === "image/png") return await pipeline.png({ compressionLevel: 9 }).toBuffer();
-    if (mimeType === "image/webp") return await pipeline.webp({ quality: 82 }).toBuffer();
-    return await pipeline.jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+    const before = await sharp(buffer).metadata();
+    const out =
+      mimeType === "image/png" ? await pipeline.png({ compressionLevel: 9 }).toBuffer()
+      : mimeType === "image/webp" ? await pipeline.webp({ quality: 82 }).toBuffer()
+      : await pipeline.jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+    const after = await sharp(out).metadata();
+    log.info("media.normalised", {
+      type: mimeType,
+      from: `${before.width}x${before.height}`, to: `${after.width}x${after.height}`,
+      orientation: before.orientation ?? null,
+      bytesIn: buffer.length, bytesOut: out.length,
+    });
+    return out;
   } catch (error) {
-    console.error("[media] could not normalise upload, storing original", error);
+    log.error("media.normalise.failed", { type: mimeType, bytes: buffer.length, error });
     return buffer;
   }
 }

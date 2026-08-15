@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getConfigMany, CONFIG_KEYS } from "@/lib/config";
 import { PLAY_STORE_URL } from "@/lib/app-store";
+import { log, clientOf } from "@/lib/log";
 
 /**
  * What the app asks the server before it trusts itself.
@@ -14,18 +15,22 @@ import { PLAY_STORE_URL } from "@/lib/app-store";
  * Deliberately public and unauthenticated: an app that must be told to update
  * has to hear it before it tries to sign anyone in.
  */
-export async function GET() {
+export async function GET(request: Request) {
   const config = await getConfigMany([
     CONFIG_KEYS.APP_MIN_VERSION_CODE,
     CONFIG_KEYS.APP_LATEST_VERSION_CODE,
   ]);
 
+  const minVersionCode = positiveInt(config[CONFIG_KEYS.APP_MIN_VERSION_CODE]) ?? 1;
+  const latestVersionCode = positiveInt(config[CONFIG_KEYS.APP_LATEST_VERSION_CODE]) ?? 1;
+  log.info("app.config.checked", { client: clientOf(request), minVersionCode, latestVersionCode });
+
   return NextResponse.json({
     // Defaults are deliberately permissive. A missing or unparseable row must
     // never lock every install out of the product — the failure mode of this
     // endpoint should be "no update prompt", not "nobody can open the app".
-    minVersionCode: positiveInt(config[CONFIG_KEYS.APP_MIN_VERSION_CODE]) ?? 1,
-    latestVersionCode: positiveInt(config[CONFIG_KEYS.APP_LATEST_VERSION_CODE]) ?? 1,
+    minVersionCode,
+    latestVersionCode,
     updateUrl: PLAY_STORE_URL,
   });
 }

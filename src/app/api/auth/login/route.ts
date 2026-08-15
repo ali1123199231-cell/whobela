@@ -9,6 +9,7 @@ import {
   LOGIN_LOCKOUT_MS,
 } from "@/lib/auth";
 import { loginSchema } from "@/lib/validation";
+import { log, clientOf } from "@/lib/log";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -17,11 +18,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
   const { email, password } = parsed.data;
+  const client = clientOf(request);
 
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (user?.loginLockedUntil && user.loginLockedUntil.getTime() > Date.now()) {
     const minutes = Math.ceil((user.loginLockedUntil.getTime() - Date.now()) / 60000);
+    log.warn("auth.login.locked", { email, client, minutesRemaining: minutes });
     return NextResponse.json(
       { error: `Too many failed attempts. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.` },
       { status: 429 }
@@ -39,6 +42,7 @@ export async function POST(request: Request) {
             : { failedLoginAttempts: attempts },
       });
     }
+    log.warn("auth.login.fail", { email, client, knownUser: !!user, attempts: user ? user.failedLoginAttempts + 1 : 0 });
     return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
   }
 
@@ -57,5 +61,7 @@ export async function POST(request: Request) {
   });
   await setSessionCookie(token);
 
-  return NextResponse.json(isNativeClient(request) ? { ok: true, token } : { ok: true });
+  const native = isNativeClient(request);
+  log.info("auth.login.ok", { userId: user.id, client, tokenInBody: native });
+  return NextResponse.json(native ? { ok: true, token } : { ok: true });
 }

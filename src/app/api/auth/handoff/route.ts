@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession, createSessionToken, sessionCookie } from "@/lib/auth";
 import { getRootOrigin } from "@/lib/config";
 import { appShellCookie } from "@/lib/app-shell";
+import { log, clientOf } from "@/lib/log";
 
 /**
  * Hands the app's session to the WebView that hosts the editor.
@@ -19,6 +20,7 @@ import { appShellCookie } from "@/lib/app-shell";
 export async function GET(request: Request) {
   const session = await getSession();
   if (!session) {
+    log.warn("auth.handoff.unauthorized", { client: clientOf(request) });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -33,6 +35,12 @@ export async function GET(request: Request) {
     email: session.email,
     username: session.username,
     tokenVersion: session.tokenVersion,
+  });
+
+  const requested = new URL(request.url).searchParams.get("to");
+  log.info("auth.handoff.ok", {
+    userId: session.userId, client: clientOf(request), requested,
+    target, rejected: requested !== null && requested !== target,
   });
 
   const response = NextResponse.redirect(new URL(target, origin), { status: 303 });

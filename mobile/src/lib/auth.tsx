@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { AppState } from "react-native";
 import { apiFetch, setToken, clearToken, getToken, SessionExpiredError } from "./api";
 import { registerForPush, unregisterPush } from "./notifications";
+import { log } from "./log";
 
 export type User = {
   id: string;
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     const stored = await getToken();
     if (!stored) {
+      log.info("auth.refresh.noToken");
       setUser(null);
       setLoading(false);
       return;
@@ -48,12 +50,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await apiFetch<SessionResponse>("/api/auth/session");
       if (data.token) await setToken(data.token);
+      log.info("auth.refresh.ok", { userId: data.user.id, rotated: !!data.token, emailVerified: data.user.emailVerified });
       setUser(data.user);
     } catch (error) {
       if (error instanceof SessionExpiredError) {
         // The password was changed somewhere else, or the account is gone.
+        log.warn("auth.refresh.revoked");
         await clearToken();
         setUser(null);
+      } else {
+        log.warn("auth.refresh.offline", { error: error as Error });
       }
       // Any other failure is almost certainly the network. Keeping the token
       // means someone opening the app on a train sees their cached inbox
@@ -84,7 +90,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // long as it stays in memory.
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") void refresh();
+      if (state === "active") {
+        log.debug("app.foreground");
+        void refresh();
+      }
     });
     return () => subscription.remove();
   }, [refresh]);
@@ -97,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     await setToken(data.token);
     const session = await apiFetch<SessionResponse>("/api/auth/session");
+    log.info("auth.signIn.ok", { userId: session.user.id });
     setUser(session.user);
   }, []);
 
@@ -109,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       await setToken(data.token);
       const session = await apiFetch<SessionResponse>("/api/auth/session");
+      log.info("auth.signUp.ok", { userId: session.user.id });
       setUser(session.user);
     },
     []
@@ -117,9 +128,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     // Unregistered before the token goes, since the call needs it — otherwise
     // the next person to use this phone is told who said yes to the last one.
+    log.info("auth.signOut.start");
     await unregisterPush().catch(() => {});
     await clearToken();
     setUser(null);
+    log.info("auth.signOut.done");
   }, []);
 
   const value = useMemo(

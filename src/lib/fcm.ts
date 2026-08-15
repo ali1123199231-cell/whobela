@@ -1,5 +1,6 @@
 import { SignJWT, importPKCS8 } from "jose";
 import { getConfig, CONFIG_KEYS } from "@/lib/config";
+import { log, timer } from "@/lib/log";
 
 /**
  * Firebase Cloud Messaging, for the Android app.
@@ -45,7 +46,7 @@ async function getServiceAccount(): Promise<ServiceAccount | null> {
   } catch {
     // A malformed paste shouldn't take down every notification path — the
     // caller treats null as "FCM isn't configured" and web push still runs.
-    console.error("[fcm] service account JSON is not parseable");
+    log.error("push.fcm.badServiceAccount", { hint: "value in system_config is not valid JSON" });
     return null;
   }
 }
@@ -89,7 +90,9 @@ async function getAccessToken(account: ServiceAccount): Promise<string | null> {
     });
 
     if (!res.ok) {
-      console.error("[fcm] token exchange failed", res.status, await res.text().catch(() => ""));
+      log.error("push.fcm.tokenExchangeFailed", {
+        status: res.status, body: (await res.text().catch(() => "")).slice(0, 300),
+      });
       return null;
     }
 
@@ -99,9 +102,10 @@ async function getAccessToken(account: ServiceAccount): Promise<string | null> {
     // Five minutes of headroom, so a token never expires mid-flight.
     const ttlMs = ((json.expires_in ?? 3600) - 300) * 1000;
     cachedAccessToken = { token: json.access_token, expiresAt: Date.now() + ttlMs };
+    log.info("push.fcm.tokenMinted", { expiresInSec: json.expires_in ?? 3600, project: account.project_id });
     return json.access_token;
   } catch (error) {
-    console.error("[fcm] could not mint an access token", error);
+    log.error("push.fcm.tokenMintThrew", { error });
     return null;
   }
 }
@@ -114,8 +118,12 @@ async function getAccessToken(account: ServiceAccount): Promise<string | null> {
  * — so the caller can drop the row instead of retrying it forever.
  */
 export async function sendFcmMessage(message: FcmMessage): Promise<FcmResult> {
+  const elapsed = timer();
   const account = await getServiceAccount();
-  if (!account) return "failed";
+  if (!account) {
+    log.warn("push.fcm.notConfigured", { hint: "FCM_SERVICE_ACCOUNT_JSON missing from system_config" });
+    return "failed";
+  }
 
   const accessToken = await getAccessToken(account);
   if (!accessToken) return "failed";
@@ -152,12 +160,18 @@ export async function sendFcmMessage(message: FcmMessage): Promise<FcmResult> {
       }
     );
 
-    if (res.ok) return "sent";
+    if (res.ok) {
+      log.info("push.fcm.sent", { tag: message.tag, ms: elapsed() });
+      return "sent";
+    }
 
     const text = await res.text().catch(() => "");
 
     // 404 means UNREGISTERED — the app was uninstalled and the token is dead.
-    if (res.status === 404) return "unregistered";
+    if (res.status === 404) {
+      log.info("push.fcm.unregistered", { status: 404, reason: "app uninstalled" });
+      return "unregistered";
+    }
 
     // 400 INVALID_ARGUMENT is NOT sufficient on its own, however tempting it
     // looks. FCM returns exactly that status for a malformed *payload* as well
@@ -168,12 +182,15 @@ export async function sendFcmMessage(message: FcmMessage): Promise<FcmResult> {
     // is not a valid FCM registration token", while a bad payload names the
     // offending field instead. Only the former is the device's fault.
     if (res.status === 400 && /registration token/i.test(text)) {
+      log.info("push.fcm.unregistered", { status: 400, reason: "invalid registration token" });
       return "unregistered";
     }
-    console.error("[fcm] send failed", res.status, text);
+    // Deliberately loud: a 400 that is NOT about the token means our payload is
+    // wrong, and that is the failure that would otherwise look like silence.
+    log.error("push.fcm.sendFailed", { status: res.status, body: text.slice(0, 300), ms: elapsed() });
     return "failed";
   } catch (error) {
-    console.error("[fcm] send threw", error);
+    log.error("push.fcm.sendThrew", { error, ms: elapsed() });
     return "failed";
   }
 }
