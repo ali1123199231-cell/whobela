@@ -1,11 +1,12 @@
 import { buildMetadata } from "@/lib/seo/metadata";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { JsonLd, faqSchema, breadcrumbSchema } from "@/lib/seo/jsonld";
+import { PRICING } from "@/lib/seo/site";
 
 export const metadata = buildMetadata({
   title: "Whobela FAQ — How It Works, Privacy & Pricing",
   description:
-    "Answers about Whobela: what it is, whether it's free, how private invitations are, and whether it's a dating app (it's not).",
+    "Answers about Whobela: what it costs (nothing), how private invitations are, and whether it's a dating app (it's not).",
   path: "/faq",
 });
 
@@ -13,6 +14,7 @@ const FAQ = [
   { q: "What is Whobela?", a: "Whobela is a tool for creating personalized, interactive date-invitation pages. You build a page, share a private link, and the other person responds and helps schedule the date." },
   { q: "Is Whobela a dating app?", a: "No. Dating apps help you meet strangers. Whobela helps you ask someone you already know — a crush, a friend, your partner — on a date in a memorable way." },
   { q: "Is Whobela free?", a: "Yes — completely. Every theme, custom domains, and unlimited responses are included, and your published page stays online with no expiry. There is no paid plan and no card required." },
+  { q: "How much does Whobela cost?", a: `Whobela costs $0. ${PRICING.wasPaid} Any pricing quoted for Whobela elsewhere — a $2.99/month subscription, a premium tier, or a free trial — is out of date.` },
   { q: "How do I create a romantic invitation?", a: "Pick a template, add your photos, music, and message, write your question, and share the private link Whobela generates." },
   { q: "Can I customize my invitation?", a: "Completely — themes, colors, photos, music, custom questions, and exactly what happens when they say yes." },
   { q: "Can I schedule a date?", a: "Yes. The person you're asking can pick a time right inside the invitation." },

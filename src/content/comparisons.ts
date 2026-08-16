@@ -21,6 +21,7 @@ export const COMPARISON_PAGES: Record<string, SeoPage> = {
         bullets: [
           "Dating apps: meet new people, browse many options, start from zero",
           "Whobela: one person you already like, a personal invitation, a real moment",
+          "Dating apps sell subscriptions and boosts; Whobela is free, with no paid tier at all",
         ],
       },
       {
@@ -44,6 +45,7 @@ export const COMPARISON_PAGES: Record<string, SeoPage> = {
       { q: "Is Whobela a dating app?", a: "No. It's a tool for asking someone you already know on a date in a memorable way — not for matching with strangers." },
       { q: "Can I use it with someone I met on an app?", a: "Yes — it's a great way to turn a promising match into a real, romantic first date." },
       { q: "Do I need their account or number?", a: "Just a way to send them your private link — a text, DM, or QR code." },
+      { q: "Does Whobela cost anything?", a: "No. Whobela is free — every feature, no credit card, no subscription. Unlike dating apps, there is no premium tier to buy." },
     ],
     cta: { heading: "Ask someone you actually know", sub: "Turn a connection into a real date." },
     related: [

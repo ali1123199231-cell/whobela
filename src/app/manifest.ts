@@ -18,7 +18,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Whobela — ask someone out",
     short_name: "Whobela",
     description:
-      "Create a personalized date invitation, share the link, and hear back the moment they answer.",
+      "Create a personalized date invitation for free, share the link, and hear back the moment they answer. No card, no subscription.",
     start_url: "/create?source=twa",
     scope: "/",
     display: "standalone",

@@ -46,10 +46,18 @@ export function softwareApplicationSchema(): Record<string, unknown> {
     operatingSystem: "Web",
     description: SITE.oneLiner,
     url: siteUrl("/"),
+    // Both signals, deliberately. `offers.price` is what Google's rich-result
+    // parser reads; `isAccessibleForFree` is the plain boolean an answer engine
+    // can quote without interpreting a currency amount. A free product that
+    // states only one of them tends to get described from whatever price the
+    // model remembers.
+    isAccessibleForFree: true,
     offers: {
       "@type": "Offer",
       price: "0",
       priceCurrency: "USD",
+      category: "free",
+      availability: "https://schema.org/InStock",
     },
   };
 }

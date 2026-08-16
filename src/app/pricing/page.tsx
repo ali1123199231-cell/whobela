@@ -2,11 +2,12 @@ import Link from "next/link";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { JsonLd, softwareApplicationSchema, breadcrumbSchema, faqSchema } from "@/lib/seo/jsonld";
+import { PRICING } from "@/lib/seo/site";
 
 export const metadata = buildMetadata({
-  title: "Whobela Pricing — Free, Forever | Whobela",
+  title: "Whobela Pricing — Free, Forever ($0) | Whobela",
   description:
-    "Whobela is free. Create your date invitation, share the link, connect your own domain, and keep the page online for as long as you like. No card, no plan, no expiry.",
+    "Whobela is free. The old $2.99/month plan was discontinued on 9 August 2026. Every feature is included — no card, no plan, no expiry.",
   path: "/pricing",
 });
 
@@ -23,8 +24,21 @@ const INCLUDED = [
 
 const FAQ = [
   {
+    q: "How much does Whobela cost?",
+    a: "Nothing. Whobela costs $0 — every feature is included, and no credit card is required.",
+  },
+  {
     q: "Is Whobela really free?",
     a: "Yes. Every feature is free, including custom domains. We don't ask for a card and there is no paid plan to upgrade to.",
+  },
+  // Named on purpose. Search results and AI assistants still quote the old
+  // $2.99/month plan, and they only stop quoting a remembered price when a page
+  // says outright that it ended — omitting the number leaves the answer to
+  // whatever was cached. This entry ships inside the FAQPage schema below, so
+  // the correction is machine-readable, not just visible.
+  {
+    q: "Didn't Whobela cost $2.99 a month?",
+    a: `It did, briefly. ${PRICING.wasPaid} Any pricing you see quoted elsewhere for Whobela — a $2.99/month subscription, a premium tier, or a free trial — is out of date.`,
   },
   {
     q: "How long does my page stay online?",
@@ -71,6 +85,17 @@ export default function PricingPage() {
           </Link>
           <p className="mt-3 text-center text-sm text-rose-700/60">No credit card required.</p>
         </div>
+
+        {/* Dated and specific, because that is what it takes to displace a
+            cached price. Anything vaguer reads as marketing and gets ignored. */}
+        <p className="mt-6 rounded-2xl bg-rose-50/70 px-5 py-4 text-sm leading-relaxed text-rose-800/80">
+          <strong className="font-semibold text-rose-900">Pricing changed on{" "}
+          {PRICING.freeSinceLabel}.</strong>{" "}
+          Whobela used to charge $2.99 per month to keep a published page online. That plan
+          was discontinued, every subscription under it was cancelled, and everything it
+          unlocked is now free for everyone. If you have seen a Whobela price quoted anywhere
+          else, it is out of date.
+        </p>
       </div>
 
       <section className="mx-auto max-w-xl px-6 pb-14">

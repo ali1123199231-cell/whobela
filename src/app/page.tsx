@@ -18,9 +18,9 @@ import {
 } from "@/lib/date-page-defaults";
 
 export const metadata = buildMetadata({
-  title: "Ask Someone Out Online | Whobela Date Invitation Maker",
+  title: "Free Date Invitation Maker — Ask Someone Out Online | Whobela",
   description:
-    "Create a personalized, interactive date invitation. Share a private link, let them respond, and schedule the date. The beautiful way to ask someone out.",
+    "Create a personalized, interactive date invitation for free. Share a private link, let them respond, and schedule the date. No card, no subscription.",
   path: "/",
 });
 
@@ -39,7 +39,7 @@ export default function LandingPage() {
     <main className="flex-1 bg-gradient-to-b from-rose-50 via-white to-pink-50">
       <div className="mx-auto flex max-w-5xl flex-col items-center px-6 py-16 text-center sm:py-24">
         <span className="mb-6 inline-block rounded-full bg-rose-100 px-4 py-1 text-sm font-medium text-rose-600">
-          🌸 whobela
+          🌸 whobela — free, forever
         </span>
 
         <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-rose-950 sm:text-5xl">
@@ -49,6 +49,16 @@ export default function LandingPage() {
         <p className="mt-6 max-w-xl text-lg text-rose-700/80">
           Create a cute interactive date invitation. Share your personal link. Let
           someone special choose when to meet.
+        </p>
+
+        {/* The home page carried no price signal at all, which left the busiest
+            page on the site with nothing to contradict the $2.99/month plan that
+            search and answer engines cached before the 2026-08-09 free pivot. */}
+        <p className="mt-4 max-w-xl text-base font-medium text-rose-600">
+          Completely free — every theme and feature, no credit card, no subscription.{" "}
+          <Link href="/pricing" className="underline underline-offset-4 hover:text-rose-700">
+            See what&apos;s included
+          </Link>
         </p>
 
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">

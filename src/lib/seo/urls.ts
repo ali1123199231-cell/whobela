@@ -11,6 +11,7 @@ import { DATE_IDEA_PAGES } from "@/content/date-ideas";
 import { QUESTION_PAGES } from "@/content/questions";
 import { TOOL_SLUGS } from "@/content/tools";
 import { BLOG_POSTS, BLOG_CATEGORIES } from "@/content/blog";
+import { CONTENT_REVISED } from "./site";
 
 export type UrlEntry = {
   path: string;
@@ -18,6 +19,8 @@ export type UrlEntry = {
   priority: number;
   /** Programmatic pages start noindex; excluded from the sitemap until promoted. */
   indexable: boolean;
+  /** ISO date for <lastmod>. Defaults to the site-wide copy revision date. */
+  lastModified?: string;
 };
 
 export function indexableUrls(): UrlEntry[] {
@@ -57,8 +60,10 @@ export function indexableUrls(): UrlEntry[] {
   for (const cat of BLOG_CATEGORIES) {
     urls.push({ path: `/blog/${cat.slug}`, changeFrequency: "weekly", priority: 0.5, indexable: true });
   }
+  // Posts carry their own publication date — a real one beats the site-wide
+  // default, and claiming an old post changed today is what gets lastmod ignored.
   for (const post of BLOG_POSTS) {
-    urls.push({ path: `/blog/${post.categorySlug}/${post.slug}`, changeFrequency: "monthly", priority: 0.6, indexable: true });
+    urls.push({ path: `/blog/${post.categorySlug}/${post.slug}`, changeFrequency: "monthly", priority: 0.6, indexable: true, lastModified: post.published });
   }
 
   // Programmatic pages: included only when their SeoPage is no longer noindex
@@ -70,5 +75,5 @@ export function indexableUrls(): UrlEntry[] {
     if (!page.noindex) urls.push({ path: page.path, changeFrequency: "monthly", priority: 0.4, indexable: true });
   }
 
-  return urls;
+  return urls.map((u) => ({ ...u, lastModified: u.lastModified ?? CONTENT_REVISED }));
 }
