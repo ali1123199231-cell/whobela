@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { bareDomain } from "@/lib/custom-domain";
 
 // Caddy on-demand TLS "ask" endpoint: called before issuing a certificate
 // for a hostname. Mirrors smartlock2's check-subdomain pattern — only issue
@@ -24,6 +25,6 @@ export async function GET(request: Request) {
   // Custom domain connected via Settings — only approved once the owner has
   // verified their DNS A record points at this server (see
   // /api/settings/domain/verify).
-  const datePage = await prisma.datePage.findUnique({ where: { customDomain: domain } });
+  const datePage = await prisma.datePage.findUnique({ where: { customDomain: bareDomain(domain) } });
   return new NextResponse(null, { status: datePage?.customDomainVerifiedAt ? 200 : 403 });
 }

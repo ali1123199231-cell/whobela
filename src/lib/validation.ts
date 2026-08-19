@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { bareDomain } from "@/lib/custom-domain";
 
 export const usernamePattern = /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/;
 
@@ -83,7 +84,13 @@ export const resetPasswordSchema = z.object({
 export const domainPattern = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/;
 
 export const connectDomainSchema = z.object({
-  domain: z.string().toLowerCase().regex(domainPattern, "Enter a valid domain, e.g. yourname.com"),
+  // Stored bare: "www.yourname.com" and "yourname.com" are the same connection,
+  // and both are served (see lib/custom-domain).
+  domain: z
+    .string()
+    .toLowerCase()
+    .regex(domainPattern, "Enter a valid domain, e.g. yourname.com")
+    .transform(bareDomain),
 });
 
 export const recipientContactSchema = z
