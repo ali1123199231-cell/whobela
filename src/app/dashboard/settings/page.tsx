@@ -20,7 +20,6 @@ export default async function SettingsTab() {
   ]);
   if (!user) redirect("/login");
 
-  const serverIp = process.env.SERVER_IP ?? null;
   // Inside the app, browser push and a "get the app" badge are both nonsense:
   // the WebView has no Notification API, so the toggle can only ever say it
   // cannot work, and the app is already installed.
@@ -33,7 +32,6 @@ export default async function SettingsTab() {
       username={session.username}
       customDomain={datePage.customDomain}
       customDomainVerified={Boolean(datePage.customDomainVerifiedAt)}
-      serverIp={serverIp}
       vapidPublicKey={vapidPublicKey}
       inApp={inApp}
     />

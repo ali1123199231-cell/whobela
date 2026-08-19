@@ -3,6 +3,22 @@ import { bareDomain } from "@/lib/custom-domain";
 
 export const usernamePattern = /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/;
 
+// Names under {name}.{ROOT_DOMAIN} that the platform itself needs, so a user
+// must never be able to claim them. `connect` is load-bearing: it is the CNAME
+// target every custom domain points at (see lib/custom-domain), and whoever
+// held that username would own the hostname all of them depend on. The rest are
+// conventional infrastructure names. Verified 2026-08-19: none are taken in
+// production, so enforcing this breaks no existing account.
+export const RESERVED_USERNAMES = new Set([
+  "connect", "www", "api", "admin", "app", "mail", "smtp", "ftp",
+  "support", "help", "status", "static", "cdn", "assets", "dev",
+  "staging", "test", "blog", "docs", "billing", "account", "login",
+]);
+
+export function isReservedUsername(username: string): boolean {
+  return RESERVED_USERNAMES.has(username.trim().toLowerCase());
+}
+
 export const passwordSchema = z
   .string()
   .min(8)
@@ -20,7 +36,8 @@ export const signupSchema = z.object({
   username: z
     .string()
     .toLowerCase()
-    .regex(usernamePattern, "Use 3-32 lowercase letters, numbers, or hyphens"),
+    .regex(usernamePattern, "Use 3-32 lowercase letters, numbers, or hyphens")
+    .refine((u) => !isReservedUsername(u), "That username isn't available"),
   firstName: z.string().min(1).max(60),
   signupReferrer: attributionField,
   signupLandingPath: attributionField,

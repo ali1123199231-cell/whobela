@@ -33,9 +33,6 @@ services:
       DATABASE_URL: postgresql://whobela:${POSTGRES_PASSWORD}@postgres:5432/whobela_staging
       JWT_SECRET: "${JWT_SECRET}"
       ROOT_DOMAIN: dev.whobela.com
-      # Public IP users point their custom-domain A record at. Without it,
-      # /api/settings/domain/verify 503s and no domain can ever be verified.
-      SERVER_IP: "${SERVER_IP}"
       UPLOAD_DIR: /app/uploads
       NODE_ENV: production
       APP_ENV: staging

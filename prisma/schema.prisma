@@ -170,6 +170,10 @@ model DatePage {
   firstPublishedAt       DateTime?
   customDomain           String?        @unique
   customDomainVerifiedAt DateTime?
+  // Set when the apex 301 -> www redirect is detected. Purely informational:
+  // the redirect is optional, so it gates nothing — it only lets Settings tell
+  // the owner whether someone typing the bare domain will reach their page.
+  customDomainRedirectVerifiedAt DateTime?
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
 
