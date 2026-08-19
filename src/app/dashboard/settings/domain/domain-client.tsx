@@ -109,7 +109,44 @@ function DnsRecordTable({ cnameTarget }: { cnameTarget: string }) {
   );
 }
 
-function HelpModal({ cnameTarget, onClose }: { cnameTarget: string; onClose: () => void }) {
+/**
+ * The apex redirect, shown the same way as the CNAME record above rather than
+ * buried in a sentence — it is a record the owner has to copy into a form, so
+ * it should look like one. Lives in the registrar's redirect/forwarding screen,
+ * which is usually separate from DNS.
+ */
+function RedirectRecordBlock({ domain }: { domain: string | null }) {
+  const bare = domain ?? "yourname.com";
+  const rows = [
+    { label: "From", value: bare },
+    { label: "To", value: `www.${bare}` },
+    { label: "Type", value: "301 (Permanent)" },
+  ];
+  return (
+    <div className="overflow-hidden rounded-xl border border-rose-100 bg-white">
+      <dl className="divide-y divide-rose-100">
+        {rows.map((row) => (
+          <div key={row.label} className="flex items-start gap-3 px-3 py-2">
+            <dt className="w-14 shrink-0 pt-0.5 text-xs font-semibold text-rose-400">{row.label}</dt>
+            <dd className="min-w-0 flex-1">
+              <code className="break-all font-mono text-xs text-rose-900">{row.value}</code>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function HelpModal({
+  cnameTarget,
+  domain,
+  onClose,
+}: {
+  cnameTarget: string;
+  domain: string | null;
+  onClose: () => void;
+}) {
   return (
     <Modal title="How to connect your domain" subtitle="Step by step — no technical skills needed" onClose={onClose}>
       <ol className="flex flex-col gap-5">
@@ -141,17 +178,20 @@ function HelpModal({ cnameTarget, onClose }: { cnameTarget: string; onClose: () 
             title: "Point the bare domain at it (optional)",
             body: (
               <>
-                In your registrar&apos;s <strong>Redirect</strong> or <strong>Forwarding</strong> section — usually
-                separate from DNS — forward the bare domain to the <code>www</code> version with a{" "}
-                <strong>301 (permanent)</strong>{" "}
-                redirect. This is what makes the address work when someone leaves
-                off the &quot;www&quot;.
+                <p className="mb-2">
+                  Go to your registrar&apos;s <strong>Redirect</strong> or <strong>Forwarding</strong> section —
+                  usually separate from DNS — and set it up like this:
+                </p>
+                <RedirectRecordBlock domain={domain} />
+                <p className="mt-2 text-rose-400">
+                  This is what makes the address work when someone leaves off the &quot;www&quot;.
+                </p>
               </>
             ),
           },
           {
             title: "Come back and check",
-            body: <>DNS can take a few minutes to a few hours to spread. Then press <strong>Check DNS</strong> — we handle the SSL certificate for you.</>,
+            body: <>DNS changes can take a few minutes to spread, occasionally up to 48 hours. Then press <strong>Check DNS</strong> — we handle the SSL certificate for you.</>,
           },
         ].map((step, i) => (
           <li key={step.title} className="flex gap-3">
@@ -460,11 +500,12 @@ export function DomainClient({
 
           <div className="rounded-xl bg-rose-50/60 p-3 text-xs text-rose-700/80">
             <p className="font-semibold text-rose-800">Optional: make {customDomain} work too</p>
-            <p className="mt-1">
-              A CNAME can&apos;t sit on the bare domain, so in your registrar&apos;s <strong>Redirect</strong> or{" "}
-              <strong>Forwarding</strong> section, send <code>{customDomain}</code> to{" "}
-              <code>{wwwDomain}</code> as a <strong>301</strong>. We detect it automatically.
+            <p className="mt-1 mb-2">
+              A CNAME can&apos;t sit on the bare domain, so someone typing it without the &quot;www&quot; won&apos;t
+              reach you. Fix that in your registrar&apos;s <strong>Redirect</strong> or <strong>Forwarding</strong>{" "}
+              section — usually separate from DNS. We detect it automatically on the next check.
             </p>
+            <RedirectRecordBlock domain={customDomain} />
           </div>
 
           <div className="flex items-center gap-3">
@@ -475,7 +516,7 @@ export function DomainClient({
             >
               {busy ? "Checking…" : "Check DNS"}
             </button>
-            <span className="text-xs text-rose-400">DNS can take a few minutes to a few hours.</span>
+            <span className="text-xs text-rose-400">DNS changes can take a few minutes, occasionally up to 48 hours.</span>
           </div>
         </Card>
       )}
@@ -508,7 +549,9 @@ export function DomainClient({
         </Card>
       )}
 
-      {showHelp && <HelpModal cnameTarget={cnameTarget} onClose={() => setShowHelp(false)} />}
+      {showHelp && (
+        <HelpModal cnameTarget={cnameTarget} domain={customDomain} onClose={() => setShowHelp(false)} />
+      )}
       {showFind && <FindDomainModal onClose={() => setShowFind(false)} />}
     </div>
   );
