@@ -22,7 +22,8 @@ export default function Index() {
     );
   }
 
-  return <Redirect href={user ? "/(tabs)/inbox" : "/editor"} />;
+  if (!user) return <Redirect href="/editor" />;
+  return <Redirect href={user.emailVerified ? "/(tabs)/inbox" : "/verify-email"} />;
 }
 
 const styles = StyleSheet.create({

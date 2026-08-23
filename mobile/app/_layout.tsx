@@ -96,6 +96,7 @@ export default function RootLayout() {
               header reads "verify-email" and "delete-account". */}
           <Stack.Screen name="verify-email" options={{ title: "Verify your email" }} />
           <Stack.Screen name="delete-account" options={{ title: "Delete account" }} />
+          <Stack.Screen name="change-email" options={{ title: "Change your email" }} />
         </Stack>
       </AuthProvider>
     </SafeAreaProvider>

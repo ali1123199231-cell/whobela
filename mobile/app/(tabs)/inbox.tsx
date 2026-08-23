@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, View, ActivityIndicator } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useAuth } from "@/lib/auth";
 import { fetchInbox, readCache, writeCache, type InboxResponse } from "@/lib/inbox";
 import { ResponseCard } from "@/components/response-card";
@@ -11,11 +11,10 @@ import { ScreenMessage, Banner } from "@/components/ui";
 import { formatCacheAge } from "@/lib/format";
 import { SessionExpiredError } from "@/lib/api";
 import { log } from "@/lib/log";
-import { colors, radius, spacing, type } from "@/lib/theme";
+import { colors, spacing, type } from "@/lib/theme";
 
 export default function InboxScreen() {
   const { user, signOut } = useAuth();
-  const unverified = !!user && !user.emailVerified;
   const [responses, setResponses] = useState<InboxResponse[] | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
@@ -137,13 +136,6 @@ export default function InboxScreen() {
       ListHeaderComponent={
         <View style={styles.header}>
           {!!cachedAt && <Banner tone="info" message={formatCacheAge(cachedAt)} />}
-          {/* Verification is skippable, so it needs a way back. Without this the
-              only route to the code entry would be the website. */}
-          {unverified && (
-            <Text style={styles.verify} onPress={() => router.push("/verify-email")}>
-              Your email isn&apos;t verified yet — tap to enter your code.
-            </Text>
-          )}
           {/* At most one prompt. Two cards stacked at the top of the inbox is
               how both get dismissed, so the review ask — which is raised at
               most once ever — takes precedence over the push prompt, which
@@ -182,14 +174,6 @@ const styles = StyleSheet.create({
   container: { padding: spacing.md, gap: spacing.sm },
   emptyContainer: { flexGrow: 1, padding: spacing.md },
   header: { gap: spacing.sm, marginBottom: spacing.sm },
-  verify: {
-    ...type.small,
-    color: colors.rose700,
-    backgroundColor: colors.rose100,
-    borderRadius: radius.lg,
-    padding: spacing.sm,
-    overflow: "hidden",
-  },
   separator: { height: spacing.sm },
   empty: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.sm, padding: spacing.lg },
   emptyTitle: type.heading,

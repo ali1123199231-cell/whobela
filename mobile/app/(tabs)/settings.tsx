@@ -76,11 +76,8 @@ export default function SettingsScreen() {
         <Text style={styles.name}>{user.firstName ?? user.username}</Text>
         <Text style={styles.detail}>{user.email}</Text>
         <Text style={styles.detail}>whobela.com/{user.username}</Text>
-        {!user.emailVerified && (
-          <Text style={styles.warning} onPress={() => router.push("/verify-email")}>
-            Your email isn&apos;t verified yet. Tap to enter your code.
-          </Text>
-        )}
+        {/* No unverified-email warning here: the tabs layout redirects an
+            unverified account to the wall, so nobody in Settings has one. */}
       </View>
 
       <Section title="Your invitation">

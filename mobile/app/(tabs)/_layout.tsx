@@ -18,6 +18,13 @@ export default function TabsLayout() {
   // Reached directly by a notification tap or a deep link while signed out.
   if (!user) return <Redirect href="/editor" />;
 
+  // The verification wall. Here rather than on each screen because this is the
+  // one door into all three tabs — a notification tap, a deep link and the
+  // index redirect all come through it, so there is nothing to walk around.
+  // Pressing back from the verify screen returns here and bounces straight
+  // back, which is what makes it a wall rather than a suggestion.
+  if (!user.emailVerified) return <Redirect href="/verify-email" />;
+
   return (
     <Tabs
       screenOptions={{
