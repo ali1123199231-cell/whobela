@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { router } from "expo-router";
 import { useAuth } from "@/lib/auth";
 import { Button, Field, Banner } from "@/components/ui";
-import { checkUsername } from "@/lib/username";
+import { checkUsername, usernameFromName } from "@/lib/username";
 import { colors, radius, spacing, type } from "@/lib/theme";
 import {
   emailProblem,
@@ -16,7 +16,13 @@ import {
 export default function SignupScreen() {
   const { signUp } = useAuth();
   const [firstName, setFirstName] = useState("");
-  const [username, setUsername] = useState("");
+  // Mirrors the website: the field is filled from the first name until the
+  // person edits it themselves, at which point what they typed wins. Typing a
+  // name and getting a ready-made username is the whole point — the previous
+  // version only reacted to the username field, so typing "Alex" offered
+  // nothing at all.
+  const [manualUsername, setManualUsername] = useState("");
+  const [usernameTouched, setUsernameTouched] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +31,8 @@ export default function SignupScreen() {
   const [taken, setTaken] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const checkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const username = usernameTouched ? manualUsername : usernameFromName(firstName);
 
   // Ask the server as they type, debounced, and abort the in-flight question
   // when the next keystroke arrives — otherwise a slow reply for "ale" can
@@ -103,7 +111,15 @@ export default function SignupScreen() {
         <Field
           label="Your first name"
           value={firstName}
-          onChangeText={setFirstName}
+          onChangeText={(text) => {
+            setFirstName(text);
+            // While the username is still derived from this, the previous
+            // verdict describes a name that no longer exists.
+            if (!usernameTouched) {
+              setTaken(false);
+              setSuggestions([]);
+            }
+          }}
           error={fieldErrors.firstName}
           autoComplete="given-name"
           placeholder="Alex"
@@ -112,7 +128,8 @@ export default function SignupScreen() {
           label="Username"
           value={username}
           onChangeText={(text) => {
-            setUsername(text);
+            setUsernameTouched(true);
+            setManualUsername(text);
             // The previous verdict describes a name they are no longer typing.
             setTaken(false);
             setSuggestions([]);
@@ -132,7 +149,12 @@ export default function SignupScreen() {
             {suggestions.map((option) => (
               <Pressable
                 key={option}
-                onPress={() => setUsername(option)}
+                onPress={() => {
+                  setUsernameTouched(true);
+                  setManualUsername(option);
+                  setTaken(false);
+                  setSuggestions([]);
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={`Use the username ${option}`}
                 style={({ pressed }) => [styles.suggestion, pressed && styles.suggestionPressed]}
