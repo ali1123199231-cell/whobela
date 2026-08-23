@@ -43,18 +43,16 @@ export default function SignupPage() {
     if (checkTimeout.current) clearTimeout(checkTimeout.current);
     if (!username || username.length < 3) return;
     checkTimeout.current = setTimeout(async () => {
-      const res = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
-      const data = await res.json().catch(() => ({ available: false }));
+      // suggest-username rather than check-username: the suggestions used to be
+      // two random numbers stuck on the end and were never checked against the
+      // database, so picking one could still come back "that username is
+      // taken" on submit. The server now only offers names it has confirmed
+      // are free, and applies the reserved list while it is at it.
+      const res = await fetch(`/api/auth/suggest-username?base=${encodeURIComponent(username)}`);
+      const data = await res.json().catch(() => ({ available: false, suggestions: [] }));
       setCheckedUsername(username);
       setCheckedAvailable(Boolean(data.available));
-      setSuggestions(
-        data.available
-          ? []
-          : [
-              `${username}${Math.floor(10 + Math.random() * 89)}`,
-              `${username}${Math.floor(10 + Math.random() * 89)}`,
-            ]
-      );
+      setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []);
     }, 400);
     return () => {
       if (checkTimeout.current) clearTimeout(checkTimeout.current);

@@ -13,10 +13,15 @@ export default function DeleteAccountPage() {
       <p>You can delete your Whobela account at any time.</p>
 
       <h2>How to Delete Your Account</h2>
-      <ol>
-        <li>Go to your account settings.</li>
-        <li>Select <strong>Delete Account</strong> and confirm.</li>
-      </ol>
+      <p>
+        <Link href="/dashboard/settings">Open your account settings</Link> and use{" "}
+        <strong>Delete account</strong> at the bottom of the page. In the Android app it is
+        under <strong>Settings → Delete your account</strong>.
+      </p>
+      <p>
+        You will be asked to type your username to confirm, because deletion is immediate and
+        cannot be reversed.
+      </p>
       <p>
         Whobela is free, so there is no subscription to cancel and nothing outstanding to
         settle; see our <Link href="/legal/subscription-terms">Subscription Terms</Link>.

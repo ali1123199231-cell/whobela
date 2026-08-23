@@ -77,7 +77,9 @@ export default function SettingsScreen() {
         <Text style={styles.detail}>{user.email}</Text>
         <Text style={styles.detail}>whobela.com/{user.username}</Text>
         {!user.emailVerified && (
-          <Text style={styles.warning}>Your email isn&apos;t verified yet.</Text>
+          <Text style={styles.warning} onPress={() => router.push("/verify-email")}>
+            Your email isn&apos;t verified yet. Tap to enter your code.
+          </Text>
         )}
       </View>
 
@@ -149,12 +151,14 @@ export default function SettingsScreen() {
       <Section title="Account">
         <Row icon="log-out" label="Sign out" onPress={confirmSignOut} disabled={signingOut} />
         {/* Play requires account deletion to be reachable from inside the app,
-            not only from the website. */}
+            not only from the website — and this used to open a page in the
+            browser that told you to come back to settings and use a control
+            the app did not have. It is a real screen now. */}
         <Row
           icon="trash"
           label="Delete your account"
           destructive
-          onPress={() => void Linking.openURL(`${API_BASE}/delete-account`)}
+          onPress={() => router.push("/delete-account")}
         />
       </Section>
 

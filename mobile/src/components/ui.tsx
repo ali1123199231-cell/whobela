@@ -18,7 +18,7 @@ export function Button({
 }: {
   label: string;
   onPress: () => void;
-  variant?: "primary" | "secondary" | "quiet";
+  variant?: "primary" | "secondary" | "quiet" | "danger";
   disabled?: boolean;
   loading?: boolean;
 }) {
@@ -34,17 +34,22 @@ export function Button({
         variant === "primary" && styles.buttonPrimary,
         variant === "secondary" && styles.buttonSecondary,
         variant === "quiet" && styles.buttonQuiet,
+        variant === "danger" && styles.buttonDanger,
         pressed && !isDisabled && styles.buttonPressed,
         isDisabled && styles.buttonDisabled,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === "primary" ? colors.white : colors.rose600} />
+        <ActivityIndicator
+          color={variant === "primary" || variant === "danger" ? colors.white : colors.rose600}
+        />
       ) : (
         <Text
           style={[
             styles.buttonLabel,
-            variant === "primary" ? styles.buttonLabelPrimary : styles.buttonLabelSecondary,
+            variant === "primary" || variant === "danger"
+              ? styles.buttonLabelPrimary
+              : styles.buttonLabelSecondary,
           ]}
         >
           {label}
@@ -125,6 +130,8 @@ const styles = StyleSheet.create({
   buttonPrimary: { backgroundColor: colors.rose600 },
   buttonSecondary: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.rose200 },
   buttonQuiet: { backgroundColor: "transparent" },
+  // Deleting an account should not look like the same act as saving one.
+  buttonDanger: { backgroundColor: colors.danger },
   buttonPressed: { opacity: 0.85 },
   buttonDisabled: { opacity: 0.5 },
   buttonLabel: { fontSize: 16, fontWeight: "600" },
