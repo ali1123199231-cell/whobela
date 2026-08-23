@@ -92,6 +92,10 @@ export default function RootLayout() {
           <Stack.Screen name="editor" options={{ title: "Your invitation" }} />
           <Stack.Screen name="login" options={{ title: "Sign in" }} />
           <Stack.Screen name="signup" options={{ title: "Create your account" }} />
+          {/* Without these two, expo-router falls back to the file name and the
+              header reads "verify-email" and "delete-account". */}
+          <Stack.Screen name="verify-email" options={{ title: "Verify your email" }} />
+          <Stack.Screen name="delete-account" options={{ title: "Delete account" }} />
         </Stack>
       </AuthProvider>
     </SafeAreaProvider>
