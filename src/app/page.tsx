@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DatePageView } from "@/components/date-page";
 import { SiteFooter } from "@/components/site-footer";
+import { InstallBar } from "@/components/install-bar";
 import { buildMetadata } from "@/lib/seo/metadata";
 import {
   JsonLd,
@@ -121,6 +122,7 @@ export default function LandingPage() {
       </section>
     </main>
     <SiteFooter />
+    <InstallBar />
     <JsonLd data={organizationSchema()} />
     <JsonLd data={websiteSchema()} />
     <JsonLd data={softwareApplicationSchema()} />

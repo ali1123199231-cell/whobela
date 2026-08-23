@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { fetchInbox, readCache, writeCache, type InboxResponse } from "@/lib/inbox";
 import { ResponseCard } from "@/components/response-card";
 import { PushPrompt } from "@/components/push-prompt";
+import { maybeRequestReview } from "@/lib/review";
 import { ScreenMessage, Banner } from "@/components/ui";
 import { formatCacheAge } from "@/lib/format";
 import { SessionExpiredError } from "@/lib/api";
@@ -37,6 +38,12 @@ export default function InboxScreen() {
         setCachedAt(null);
         setError(null);
         await writeCache(userId, page.responses);
+
+        // Only once a real answer exists, and only from a fresh fetch — the
+        // cached path below can show the same yes on a fourth flight with no
+        // signal, which is not a new good moment. Not awaited: a ratings card
+        // must never be on the path between someone and their answers.
+        if (page.responses.length > 0) void maybeRequestReview();
       } catch (failure) {
         if (failure instanceof SessionExpiredError) {
           await signOut();
@@ -142,7 +149,17 @@ export default function InboxScreen() {
       onEndReached={() => void loadMore()}
       onEndReachedThreshold={0.4}
       ListFooterComponent={
-        loadingMore ? <ActivityIndicator style={styles.footer} color={colors.rose600} /> : null
+        loadingMore ? (
+          <ActivityIndicator style={styles.footer} color={colors.rose600} />
+        ) : list.length > 0 ? (
+          // A statement, not a question, with nothing to tap — Play's policy
+          // bans asking anything that gates the review card, and this is
+          // deliberately nowhere near it. Same wording the web install card
+          // has used since it shipped.
+          <Text style={styles.nudge}>
+            Ratings help other people find Whobela — if it worked for you, we&apos;d love one.
+          </Text>
+        ) : null
       }
     />
   );
@@ -157,4 +174,11 @@ const styles = StyleSheet.create({
   emptyTitle: type.heading,
   emptyBody: { ...type.body, color: colors.muted, textAlign: "center" },
   footer: { paddingVertical: spacing.md },
+  nudge: {
+    ...type.small,
+    color: colors.rose300,
+    textAlign: "center",
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
 });

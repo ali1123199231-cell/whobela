@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { PlayBadge } from "@/components/play-badge";
-import { isAndroid } from "@/lib/app-store";
+import { useIsAndroid, useStandalone } from "@/lib/device";
 
 // Chrome fires this instead of showing its own install UI once the page
 // qualifies; holding onto it lets us put the prompt behind a button of our own.
@@ -10,33 +10,6 @@ type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
-
-const STANDALONE = "(display-mode: standalone)";
-
-// Read as an external store rather than in an effect: the server has no
-// matchMedia, and subscribing keeps the answer right if the app is launched
-// from the home screen while this tab is open.
-function useStandalone(): boolean {
-  return useSyncExternalStore(
-    (onChange) => {
-      const query = window.matchMedia(STANDALONE);
-      query.addEventListener("change", onChange);
-      return () => query.removeEventListener("change", onChange);
-    },
-    () => window.matchMedia(STANDALONE).matches,
-    () => false
-  );
-}
-
-// The OS never changes mid-session, so there is nothing to subscribe to — this
-// is useSyncExternalStore purely for its server snapshot, which keeps the
-// server's HTML (no navigator, so "not Android") from disagreeing with the
-// client's first render.
-const NEVER_CHANGES = () => () => {};
-
-function useIsAndroid(): boolean {
-  return useSyncExternalStore(NEVER_CHANGES, isAndroid, () => false);
-}
 
 export function InstallApp() {
   const [promptEvent, setPromptEvent] = useState<InstallPromptEvent | null>(null);

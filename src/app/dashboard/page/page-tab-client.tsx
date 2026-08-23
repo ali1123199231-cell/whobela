@@ -5,6 +5,8 @@ import { DatePageView, type DatePageConfigPatch } from "@/components/date-page";
 import { PhotoCropper } from "@/components/photo-cropper";
 import { PhotoManager } from "@/components/date-page/photo-manager";
 import { PushPrompt } from "@/components/push-prompt";
+import { InstallPrompt } from "@/components/install-prompt";
+import { useIsAndroid, useStandalone } from "@/lib/device";
 import type { DatePage } from "@/generated/prisma/client";
 
 type Photo = { id: string; url: string };
@@ -14,11 +16,13 @@ export function PageTabClient({
   photos: initialPhotos,
   liveUrl,
   vapidPublicKey,
+  installPromptEnabled,
 }: {
   datePage: DatePage;
   photos: Photo[];
   liveUrl: string;
   vapidPublicKey: string | null;
+  installPromptEnabled: boolean;
 }) {
   const [config, setConfig] = useState({
     theme: datePage.theme,
@@ -39,6 +43,13 @@ export function PageTabClient({
   const [justPublished, setJustPublished] = useState(false);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Whether the publish moment offers the app instead of web push. Read through
+  // the same external-store hooks the install card uses, so the server's render
+  // and the client's first one agree instead of swapping a frame later.
+  const android = useIsAndroid();
+  const standalone = useStandalone();
+  const offerTheApp = installPromptEnabled && android && !standalone;
 
   function handleConfigUpdate(patch: DatePageConfigPatch) {
     setConfig((prev) => ({ ...prev, ...patch }));
@@ -178,13 +189,16 @@ export function PageTabClient({
       {pendingImage && (
         <PhotoCropper imageSrc={pendingImage} onCancel={() => setPendingImage(null)} onCropped={handleCropped} />
       )}
-      {justPublished && (
-        <PushPrompt
-          placement="publish"
-          vapidPublicKey={vapidPublicKey}
-          onDismiss={() => setJustPublished(false)}
-        />
-      )}
+      {justPublished &&
+        (offerTheApp ? (
+          <InstallPrompt onDismiss={() => setJustPublished(false)} />
+        ) : (
+          <PushPrompt
+            placement="publish"
+            vapidPublicKey={vapidPublicKey}
+            onDismiss={() => setJustPublished(false)}
+          />
+        ))}
       {managingPhotos && !pendingImage && (
         <PhotoManager
           photos={photos}

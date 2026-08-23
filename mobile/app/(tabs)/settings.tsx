@@ -129,7 +129,20 @@ export default function SettingsScreen() {
         <Row
           icon="flag"
           label="Report a problem"
+          hint="Something wrong with someone else's invitation"
           onPress={() => void Linking.openURL(`${API_BASE}/report-abuse`)}
+        />
+        {/* The counterweight to the ratings card on the inbox. That card is
+            fired unconditionally, because Play forbids asking how someone
+            feels and then routing the happy ones to it — so this is how the
+            unhappy ones are served instead: always here, never conditional,
+            and never mentioned by the prompt. The version travels with the
+            mail because the first question about any bug is which build. */}
+        <Row
+          icon="chatbubble-ellipses"
+          label="Something not right?"
+          hint="Tell us — we read every message"
+          onPress={() => void Linking.openURL(bugReportMailto())}
         />
       </Section>
 
@@ -165,6 +178,15 @@ export default function SettingsScreen() {
       </Pressable>
     </ScrollView>
   );
+}
+
+function bugReportMailto(): string {
+  // encodeURIComponent, not URLSearchParams: the latter encodes a space as "+",
+  // which mail clients paste verbatim into the subject line rather than
+  // decoding it, so the mail arrives titled "Whobela+app+feedback".
+  const subject = encodeURIComponent(`Whobela app feedback (${APP_VERSION} build ${VERSION_CODE})`);
+  const body = encodeURIComponent("\n\n\u2014\nWhat happened, and what you expected instead:\n");
+  return `mailto:support@whobela.com?subject=${subject}&body=${body}`;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

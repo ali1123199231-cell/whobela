@@ -78,4 +78,26 @@ export const CONFIG_KEYS = {
   // Set these to lock out a release that shipped broken — see /api/app/config.
   APP_MIN_VERSION_CODE: "APP_MIN_VERSION_CODE",
   APP_LATEST_VERSION_CODE: "APP_LATEST_VERSION_CODE",
+
+  // The two Android install prompts on the web: the bar on marketing pages and
+  // the card shown once a page goes live. Read through isFeatureEnabled, so an
+  // absent row means on — see there for why that direction.
+  APP_INSTALL_BAR_ENABLED: "APP_INSTALL_BAR_ENABLED",
+  APP_INSTALL_POSTPUBLISH_ENABLED: "APP_INSTALL_POSTPUBLISH_ENABLED",
 } as const;
+
+/**
+ * A kill switch, as opposed to the credential lookups above.
+ *
+ * Those default to off because a missing Stripe key must not be treated as a
+ * working one. A feature flag is the opposite case: these two prompts are the
+ * only route from the site's traffic to the Play listing, and an absent row is
+ * far more likely to mean "nobody has ever written one" than "turn this off".
+ * So the row's job is only to disable — set it to 0/false/off to take either
+ * surface down from the database, with no deploy.
+ */
+export async function isFeatureEnabled(key: string): Promise<boolean> {
+  const value = await getConfig(key);
+  if (value === null) return true;
+  return !["0", "false", "off", "no", ""].includes(value.trim().toLowerCase());
+}

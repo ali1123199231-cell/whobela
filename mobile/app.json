@@ -19,6 +19,7 @@
     ],
     "android": {
       "package": "com.whobela.app",
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=com.whobela.app",
       "versionCode": 2,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {

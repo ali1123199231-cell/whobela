@@ -1,11 +1,29 @@
-// The Android app is a Trusted Web Activity wrapping this same site, published
-// from the "Slekio" Play developer account. Everything about where it lives is
-// here so the package id exists in one place — it is also baked into
-// /.well-known/assetlinks.json, which must name the identical package.
+// The Android app is published from the "Slekio" Play developer account.
+// Everything about where it lives is here so the package id exists in one
+// place — it is also baked into /.well-known/assetlinks.json, which must name
+// the identical package.
 
 export const PLAY_PACKAGE_ID = "com.whobela.app";
 
 export const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${PLAY_PACKAGE_ID}`;
+
+/**
+ * The store URL tagged so Play can tell us where an install came from.
+ *
+ * Play forwards the `referrer` value to the Install Referrer API and reports it
+ * under Acquisition → traffic source, which is the only way to answer "did the
+ * website actually drive installs" — the store badge is bucketed to 0+/5+/10+
+ * and tells you nothing about the source. The value has to be a single encoded
+ * query string, not separate utm_* parameters, or Play drops it.
+ */
+export function playStoreUrl(medium: string): string {
+  const referrer = new URLSearchParams({
+    utm_source: "whobela.com",
+    utm_medium: medium,
+    utm_campaign: "web_install",
+  }).toString();
+  return `${PLAY_STORE_URL}&referrer=${encodeURIComponent(referrer)}`;
+}
 
 /**
  * True for Android browsers, which are the only visitors who can install from

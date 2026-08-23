@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
+import { InstallBar } from "@/components/install-bar";
 
 const NAV = [
   { href: "/create-date-invitation", label: "Create" },
@@ -40,6 +41,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <SiteFooter />
+      <InstallBar />
     </>
   );
 }

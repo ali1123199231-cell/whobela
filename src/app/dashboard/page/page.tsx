@@ -2,13 +2,15 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getVapidPublicKey } from "@/lib/push";
+import { isFeatureEnabled, CONFIG_KEYS } from "@/lib/config";
+import { isAppShell } from "@/lib/app-shell";
 import { PageTabClient } from "./page-tab-client";
 
 export default async function PageTab() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const [datePage, photos, vapidPublicKey] = await Promise.all([
+  const [datePage, photos, vapidPublicKey, installPromptAllowed, inApp] = await Promise.all([
     prisma.datePage.upsert({
       where: { userId: session.userId },
       update: {},
@@ -19,6 +21,8 @@ export default async function PageTab() {
       orderBy: { order: "asc" },
     }),
     getVapidPublicKey(),
+    isFeatureEnabled(CONFIG_KEYS.APP_INSTALL_POSTPUBLISH_ENABLED),
+    isAppShell(),
   ]);
 
   const rootDomain = process.env.ROOT_DOMAIN ?? "localhost:3000";
@@ -33,6 +37,7 @@ export default async function PageTab() {
       photos={photos.map((p) => ({ id: p.id, url: `/api/media/${p.id}` }))}
       liveUrl={liveUrl}
       vapidPublicKey={vapidPublicKey}
+      installPromptEnabled={installPromptAllowed && !inApp}
     />
   );
 }
