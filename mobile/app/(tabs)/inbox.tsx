@@ -175,8 +175,13 @@ const styles = StyleSheet.create({
   emptyBody: { ...type.body, color: colors.muted, textAlign: "center" },
   footer: { paddingVertical: spacing.md },
   nudge: {
+    // muted, not rose300: on the rose50 screen background rose300 measures
+    // 1.72:1, well under WCAG AA's 4.5:1 for body text, and on the phone it
+    // was barely legible. muted is 4.61:1 and is what the rest of the app
+    // already uses for secondary copy. A ratings nudge nobody can read is a
+    // ratings nudge that does nothing.
     ...type.small,
-    color: colors.rose300,
+    color: colors.muted,
     textAlign: "center",
     paddingTop: spacing.md,
     paddingHorizontal: spacing.md,
