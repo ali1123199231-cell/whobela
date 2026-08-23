@@ -5,6 +5,9 @@ import { siteUrl } from "@/lib/seo/site";
 // surfaces (belt-and-suspenders alongside per-page noindex on /r and /preview).
 const DISALLOW = [
   "/dashboard/",
+  // The counted redirect to Play. A crawler following it is not a visitor
+  // who wanted the app, and would quietly inflate the click numbers.
+  "/go/",
   "/api/",
   "/preview/",
   "/r/",

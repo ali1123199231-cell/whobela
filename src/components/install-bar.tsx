@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PlayBadge } from "@/components/play-badge";
-import { isAndroid, playStoreUrl } from "@/lib/app-store";
+import { isAndroid, playRedirect } from "@/lib/app-store";
 
 const DISMISSED_KEY = "whobela.install.bar.dismissed";
 const DISMISSAL_DAYS = 30;
@@ -83,7 +83,7 @@ export function InstallBar() {
             </p>
             <p className="text-xs leading-snug text-rose-700/70">Free on Android</p>
           </div>
-          <PlayBadge href={playStoreUrl("marketing_bar")} className="shrink-0" scale={0.2} />
+          <PlayBadge href={playRedirect("bar")} className="shrink-0" scale={0.2} />
           <button
             onClick={() => {
               // Remembered with a date rather than a flag: someone who says no

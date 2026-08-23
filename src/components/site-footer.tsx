@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PlayBadge } from "@/components/play-badge";
+import { playRedirect } from "@/lib/app-store";
 
 const columns = [
   {
@@ -89,7 +90,7 @@ export function SiteFooter() {
               Get answers the moment they arrive.
             </p>
           </div>
-          <PlayBadge />
+          <PlayBadge href={playRedirect("footer")} />
         </div>
 
         <div className="mt-8 flex flex-col gap-2 border-t border-rose-100 pt-6 text-sm text-rose-500/70 sm:flex-row sm:items-center sm:justify-between">

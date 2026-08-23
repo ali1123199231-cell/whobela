@@ -289,6 +289,33 @@ model BillingClickEvent {
   @@map("billing_click_events")
 }
 
+/// A tap on a "Get it on Google Play" badge, recorded by /go/play.
+///
+/// Deliberately anonymous: no user id, no IP address and no user agent is
+/// stored. The platform is a coarse bucket derived from the User-Agent header
+/// and the header itself is then discarded — the same restraint signupCountry
+/// already keeps ("no finer granularity than country"). Nothing here
+/// identifies a person, and the redirect that writes it sets nothing at all in
+/// the browser, so there is nothing to ask consent for.
+///
+/// The point of the platform column is not the Android number. It is the iOS
+/// one: people tapping a Play badge from an iPhone are asking for an app that
+/// does not exist, and that is the only honest measure of whether an Apple
+/// developer account is worth paying for.
+model AppLinkClick {
+  id String @id @default(uuid())
+
+  /// Which surface was tapped — see SOURCES in app/go/play/route.ts. Only
+  /// known values are ever written, so a crafted ?s= cannot invent columns.
+  source    String
+  /// android | ios | desktop | other
+  platform  String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("app_link_clicks")
+}
+
 model SystemConfig {
   id          String   @id @default(uuid())
   key         String   @unique

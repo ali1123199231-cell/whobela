@@ -8,6 +8,18 @@ export const PLAY_PACKAGE_ID = "com.whobela.app";
 export const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${PLAY_PACKAGE_ID}`;
 
 /**
+ * The link every badge on the website should use.
+ *
+ * Points at our own /go/play, which counts the tap and then redirects to the
+ * tagged store URL below. Callers pass the surface they live on so the two
+ * halves of the funnel — taps here, installs in Play's traffic-source report —
+ * can be read against each other.
+ */
+export function playRedirect(source: "bar" | "footer" | "post_publish" | "settings"): string {
+  return `/go/play?s=${source}`;
+}
+
+/**
  * The store URL tagged so Play can tell us where an install came from.
  *
  * Play forwards the `referrer` value to the Install Referrer API and reports it

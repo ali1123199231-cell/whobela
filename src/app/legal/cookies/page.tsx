@@ -26,7 +26,7 @@ export default function CookiesPage() {
       <h2>2. What We Actually Use</h2>
       <p>
         Very little. Whobela sets <strong>one cookie</strong>, and uses your browser&apos;s
-        local storage for one purpose. We run no analytics service, no advertising tags, and
+        local storage for two purposes. We run no analytics service, no advertising tags, and
         nothing that follows you to other websites.
       </p>
 
@@ -48,6 +48,22 @@ export default function CookiesPage() {
         an account, that record is attached to it so we can understand which channels bring
         people to the Service. It holds no information about you personally, is never sold or
         shared with advertisers, and clearing your browser storage removes it.
+      </p>
+      <p>
+        We also use local storage to remember if you dismiss the banner offering our Android
+        app, so that it stays dismissed for thirty days rather than reappearing on every page.
+        It records only that you closed it, and the date.
+      </p>
+
+      <h3>Counting taps on the Android app link</h3>
+      <p>
+        Links to our app on Google Play pass through our own server so we can count how many
+        people tap them, and whether they were using an Android phone, an iPhone or a
+        computer. That count is anonymous: we record the button, that coarse device type and
+        the time, and nothing else. No cookie is set, nothing is stored in your browser, your
+        IP address is not recorded, and the figures never leave our own systems. We do this to
+        see whether the app is worth continuing to build — including whether enough people on
+        iPhones want one to justify making it.
       </p>
 
       <h2>4. Third-Party Cookies</h2>

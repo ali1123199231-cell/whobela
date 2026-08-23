@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PlayBadge } from "@/components/play-badge";
+import { playRedirect } from "@/lib/app-store";
 import { useIsAndroid, useStandalone } from "@/lib/device";
 
 // Chrome fires this instead of showing its own install UI once the page
@@ -51,7 +52,7 @@ export function InstallApp() {
   if (android) {
     return (
       <div className="flex flex-col gap-2">
-        <PlayBadge />
+        <PlayBadge href={playRedirect("settings")} />
         <p className="text-xs text-rose-700/50">
           Ratings help other people find Whobela — if it worked for you, we&apos;d love one.
         </p>

@@ -1,7 +1,7 @@
 "use client";
 
 import { PlayBadge } from "@/components/play-badge";
-import { playStoreUrl } from "@/lib/app-store";
+import { playRedirect } from "@/lib/app-store";
 
 /**
  * Offers the Android app at the moment a page goes live.
@@ -24,7 +24,7 @@ export function InstallPrompt({ onDismiss }: { onDismiss: () => void }) {
           refreshing, no checking.
         </p>
         <div className="mt-4">
-          <PlayBadge href={playStoreUrl("post_publish")} scale={0.24} />
+          <PlayBadge href={playRedirect("post_publish")} scale={0.24} />
         </div>
         <button onClick={onDismiss} className="mt-3 text-sm text-rose-400">
           Not now
