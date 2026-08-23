@@ -16,7 +16,19 @@ import { log } from "@/lib/log";
  * every install immediately instead of waiting on a Play review. The palette is
  * shared with the native screens precisely so this seam is invisible.
  */
-export function SiteWebView({ path }: { path: string }) {
+export function SiteWebView({
+  path,
+  onPublished,
+}: {
+  path: string;
+  /**
+   * Fires when the editor inside reports that a page went live. The website
+   * has posted `{"type":"published"}` over the WebView bridge since the app
+   * shipped; nothing on this side was listening for it, so the moment passed
+   * unnoticed.
+   */
+  onPublished?: () => void;
+}) {
   const webRef = useRef<WebView>(null);
   const [uri, setUri] = useState<string | null>(null);
   const [headers, setHeaders] = useState<Record<string, string>>({});
@@ -127,6 +139,20 @@ export function SiteWebView({ path }: { path: string }) {
         onShouldStartLoadWithRequest={onShouldStart}
         onNavigationStateChange={(state) => {
           canGoBack.current = state.canGoBack;
+        }}
+        onMessage={(event) => {
+          // The editor posts {"type":"published"} the moment a page goes live.
+          // Publishing happens over an API call rather than a navigation, so
+          // this bridge is the only way the native side can know it happened.
+          try {
+            const message = JSON.parse(event.nativeEvent.data) as { type?: string };
+            if (message?.type === "published") {
+              log.info("webview.published", { path });
+              onPublished?.();
+            }
+          } catch {
+            // Anything that is not our JSON is not ours to act on.
+          }
         }}
         onLoadEnd={() => {
           log.info("webview.loaded", { path });

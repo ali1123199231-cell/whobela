@@ -32,7 +32,11 @@ export default function VerifyEmailScreen() {
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
 
-  const enterTheApp = () => router.replace("/(tabs)/inbox");
+  // Straight to the invitation editor, not to Answers. Someone who has just
+  // verified has by definition never been answered, so Answers is an empty
+  // state — the next thing they need is to write the invitation that produces
+  // the answers.
+  const enterTheApp = () => router.replace("/(tabs)/invitation");
 
   const verify = async () => {
     const entered = code.trim();
@@ -45,8 +49,8 @@ export default function VerifyEmailScreen() {
     try {
       await apiFetch("/api/auth/verify-email", { method: "POST", body: { code: entered } });
       log.info("verify.ok");
-      // Pull the fresh emailVerified through before leaving, so the banner on
-      // the inbox is already gone when they land on it.
+      // Pull the fresh emailVerified through before leaving, so the tabs
+      // layout does not bounce straight back here on the next render.
       await refresh();
       enterTheApp();
     } catch (failure) {

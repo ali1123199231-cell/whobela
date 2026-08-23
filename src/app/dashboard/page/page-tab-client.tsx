@@ -11,18 +11,41 @@ import type { DatePage } from "@/generated/prisma/client";
 
 type Photo = { id: string; url: string };
 
+type AppShellWindow = Window & {
+  ReactNativeWebView?: { postMessage: (message: string) => void };
+};
+
+/**
+ * Tell the native shell the page just went live.
+ *
+ * Fire-and-forget by design: the app decides whether asking is even possible
+ * (Android shows the permission dialog once and remembers a refusal forever),
+ * and the publish flow must not depend on the answer.
+ */
+function notifyAppShell() {
+  const bridge = (window as AppShellWindow).ReactNativeWebView;
+  if (!bridge) return;
+  try {
+    bridge.postMessage(JSON.stringify({ type: "published" }));
+  } catch {
+    // A missing or broken bridge must never break publishing.
+  }
+}
+
 export function PageTabClient({
   datePage,
   photos: initialPhotos,
   liveUrl,
   vapidPublicKey,
   installPromptEnabled,
+  inApp,
 }: {
   datePage: DatePage;
   photos: Photo[];
   liveUrl: string;
   vapidPublicKey: string | null;
   installPromptEnabled: boolean;
+  inApp: boolean;
 }) {
   const [config, setConfig] = useState({
     theme: datePage.theme,
@@ -75,6 +98,11 @@ export function PageTabClient({
       // live and about to go out. Set only here, never on load, so the prompt
       // can't appear to someone who just wandered onto this tab.
       setJustPublished(true);
+      // Inside the app shell the permission is the operating system's, not the
+      // browser's — the WebView has no Notification API, so a web prompt here
+      // could only ever report that it cannot work. Hand the moment to the
+      // native side, which owns the real dialog.
+      if (inApp) notifyAppShell();
     }
   }
 
@@ -189,7 +217,11 @@ export function PageTabClient({
       {pendingImage && (
         <PhotoCropper imageSrc={pendingImage} onCancel={() => setPendingImage(null)} onCropped={handleCropped} />
       )}
+      {/* In the app the native side takes this moment over; neither web
+          branch applies, since the install card offers an app they already
+          have and web push cannot work in a WebView. */}
       {justPublished &&
+        !inApp &&
         (offerTheApp ? (
           <InstallPrompt onDismiss={() => setJustPublished(false)} />
         ) : (

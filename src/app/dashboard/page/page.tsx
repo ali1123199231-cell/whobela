@@ -38,6 +38,7 @@ export default async function PageTab() {
       liveUrl={liveUrl}
       vapidPublicKey={vapidPublicKey}
       installPromptEnabled={installPromptAllowed && !inApp}
+      inApp={inApp}
     />
   );
 }

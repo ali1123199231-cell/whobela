@@ -15,7 +15,7 @@ const DISMISSED_KEY = "whobela.push.dismissed";
  * remembers the refusal forever, so this is the one shot — spending it on first
  * launch, before anyone knows what the app is for, is how it gets denied.
  */
-export function PushPrompt() {
+export function PushPrompt({ onDone }: { onDone?: () => void } = {}) {
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -42,12 +42,14 @@ export function PushPrompt() {
       // Hidden either way. If they granted it there is nothing left to ask; if
       // they refused, Android will not show the dialog again.
       setVisible(false);
+      onDone?.();
     }
   };
 
   const dismiss = async () => {
     await AsyncStorage.setItem(DISMISSED_KEY, "1").catch(() => {});
     setVisible(false);
+    onDone?.();
   };
 
   return (
