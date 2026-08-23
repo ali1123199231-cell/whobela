@@ -1,46 +1,96 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as StoreReview from "expo-store-review";
+import { Linking } from "react-native";
+import { PLAY_URL } from "./config";
 import { log } from "./log";
 
-const ASKED_KEY = "whobela.review.askedAt";
-const COOLDOWN_DAYS = 120;
+const SEEN_KEY = "whobela.review.answerSeenAt";
+const SETTLED_KEY = "whobela.review.settled";
+const SNOOZED_KEY = "whobela.review.snoozedUntil";
+const SNOOZE_DAYS = 60;
 
 /**
- * Asks Play for a rating at the moment someone has just been told yes.
- *
- * Whobela shipped to production with no ratings at all, which means the store
- * listing shows no stars — and a listing with no stars converts badly for the
- * few people who reach it. This is the fix, and the inbox is the only honest
- * place for it: the app has just delivered the entire thing it promised.
- *
- * Note what this deliberately does NOT do. Play's in-app review policy forbids
- * asking the user anything before the card — no "do you like the app?", no
- * "would you rate us five stars?" — and forbids putting it behind a button,
- * since the quota may silently swallow the call and leave a dead control on
- * screen. So it is fired unconditionally, from an event rather than a tap, and
- * anyone with a complaint instead of a rating is served by the contact row in
- * Settings, which is always there and is not wired to this.
+ * When this launch began. Not a stored value — the point is that it changes
+ * every time the app starts, which is what lets "they saw an answer in an
+ * earlier session" be expressed as a single comparison.
  */
-export async function maybeRequestReview(): Promise<void> {
+const SESSION_STARTED_AT = Date.now();
+
+/**
+ * Decides whether to ask for a review, and when.
+ *
+ * The rule is: they must have had an answer waiting on a *previous* visit.
+ * The first time an answer appears the app says nothing at all — that moment
+ * belongs to reading who said yes, and the earlier version interrupted it,
+ * covering the answer with a ratings card before it had been read.
+ *
+ * Deliberately no longer the Play in-app review API. That card cannot be put
+ * behind a question about how someone feels — Play's policy forbids asking
+ * anything before it, and forbids triggering it from a button at all. Asking
+ * first is what we want here, so the happy path ends at the store listing
+ * instead, which is the route Google's own documentation points to for a
+ * call-to-action. The trade is real: rating on the listing takes more effort
+ * than the one-tap card, so fewer people will finish.
+ */
+export async function reviewPromptDue(): Promise<boolean> {
   try {
-    // False when the device is too old or the store URLs are missing, in which
-    // case requestReview would be a no-op we'd keep re-arming forever.
-    if (!(await StoreReview.hasAction())) return;
+    if (await AsyncStorage.getItem(SETTLED_KEY)) return false;
 
-    const raw = await AsyncStorage.getItem(ASKED_KEY);
-    const askedAt = Number(raw);
-    if (Number.isFinite(askedAt) && Date.now() - askedAt < COOLDOWN_DAYS * 86_400_000) return;
+    const snoozedUntil = Number(await AsyncStorage.getItem(SNOOZED_KEY));
+    if (Number.isFinite(snoozedUntil) && Date.now() < snoozedUntil) return false;
 
-    // Recorded before the request, not after. The API resolves the same way
-    // whether the card appeared or Play's own quota swallowed it — there is no
-    // outcome to react to — so treating "we tried" as the thing to remember is
-    // the only way this can't turn into a prompt on every single answer.
-    await AsyncStorage.setItem(ASKED_KEY, String(Date.now()));
-    log.info("review.requested");
-    await StoreReview.requestReview();
-  } catch (failure) {
-    // Never worth surfacing. Someone reading who just said yes to them does
-    // not need an error about a ratings prompt.
-    log.warn("review.failed", { message: (failure as Error).message });
+    const raw = await AsyncStorage.getItem(SEEN_KEY);
+    if (!raw) {
+      // First sighting. Record it and stay quiet — this is the visit where
+      // they are reading the answer.
+      await AsyncStorage.setItem(SEEN_KEY, String(Date.now()));
+      return false;
+    }
+
+    const seenAt = Number(raw);
+    if (!Number.isFinite(seenAt)) return false;
+
+    // Only once the sighting belongs to an earlier run of the app. Tab
+    // switching refetches the inbox constantly, so "a later fetch" would fire
+    // seconds after the first and be exactly the interruption we removed.
+    return seenAt < SESSION_STARTED_AT;
+  } catch {
+    // Storage is unreadable; never let that turn into a prompt on every load.
+    return false;
   }
+}
+
+/** They answered, either way. Do not raise it again. */
+export async function settleReviewPrompt(outcome: string): Promise<void> {
+  log.info("review.settled", { outcome });
+  await AsyncStorage.setItem(SETTLED_KEY, "1").catch(() => {});
+}
+
+/** "Not now" — ask again in a couple of months, rather than never. */
+export async function snoozeReviewPrompt(): Promise<void> {
+  log.info("review.snoozed");
+  const until = Date.now() + SNOOZE_DAYS * 86_400_000;
+  await AsyncStorage.setItem(SNOOZED_KEY, String(until)).catch(() => {});
+}
+
+/**
+ * Opens the Play listing, where the star row is.
+ *
+ * market:// goes straight to the Play app; the https URL is the fallback for a
+ * device without it. Android offers no deep link into the review composer
+ * itself, so the listing is as close as it is possible to get — and, as with
+ * the in-app card, nothing tells us whether a review was actually left.
+ */
+export async function openPlayListing(): Promise<void> {
+  const market = `market://details?id=com.whobela.app`;
+  try {
+    if (await Linking.canOpenURL(market)) {
+      await Linking.openURL(market);
+      return;
+    }
+  } catch {
+    // Fall through to the web listing.
+  }
+  await Linking.openURL(PLAY_URL).catch((failure: Error) => {
+    log.warn("review.openFailed", { message: failure.message });
+  });
 }

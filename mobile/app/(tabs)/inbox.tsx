@@ -5,7 +5,8 @@ import { useAuth } from "@/lib/auth";
 import { fetchInbox, readCache, writeCache, type InboxResponse } from "@/lib/inbox";
 import { ResponseCard } from "@/components/response-card";
 import { PushPrompt } from "@/components/push-prompt";
-import { maybeRequestReview } from "@/lib/review";
+import { ReviewPrompt } from "@/components/review-prompt";
+import { reviewPromptDue } from "@/lib/review";
 import { ScreenMessage, Banner } from "@/components/ui";
 import { formatCacheAge } from "@/lib/format";
 import { SessionExpiredError } from "@/lib/api";
@@ -20,6 +21,7 @@ export default function InboxScreen() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [askForReview, setAskForReview] = useState(false);
 
   // Keyed on the id rather than the user object: refreshing the session hands
   // back a new object with the same contents, and depending on it made this
@@ -41,9 +43,12 @@ export default function InboxScreen() {
 
         // Only once a real answer exists, and only from a fresh fetch — the
         // cached path below can show the same yes on a fourth flight with no
-        // signal, which is not a new good moment. Not awaited: a ratings card
-        // must never be on the path between someone and their answers.
-        if (page.responses.length > 0) void maybeRequestReview();
+        // signal, which is not a new good moment. Not awaited: deciding
+        // whether to ask for a review must never be on the path between
+        // someone and their answers.
+        if (page.responses.length > 0) {
+          void reviewPromptDue().then(setAskForReview);
+        }
       } catch (failure) {
         if (failure instanceof SessionExpiredError) {
           await signOut();
@@ -131,9 +136,17 @@ export default function InboxScreen() {
       ListHeaderComponent={
         <View style={styles.header}>
           {!!cachedAt && <Banner tone="info" message={formatCacheAge(cachedAt)} />}
-          {/* Only once an answer has landed: the value of being told instantly
-              is self-evident to someone who just found out by checking. */}
-          {list.length > 0 && <PushPrompt />}
+          {/* At most one prompt. Two cards stacked at the top of the inbox is
+              how both get dismissed, so the review ask — which is raised at
+              most once ever — takes precedence over the push prompt, which
+              will come round again on the next answer. */}
+          {askForReview ? (
+            <ReviewPrompt onDone={() => setAskForReview(false)} />
+          ) : (
+            /* Only once an answer has landed: the value of being told instantly
+               is self-evident to someone who just found out by checking. */
+            list.length > 0 && <PushPrompt />
+          )}
         </View>
       }
       ListEmptyComponent={
@@ -151,14 +164,6 @@ export default function InboxScreen() {
       ListFooterComponent={
         loadingMore ? (
           <ActivityIndicator style={styles.footer} color={colors.rose600} />
-        ) : list.length > 0 ? (
-          // A statement, not a question, with nothing to tap — Play's policy
-          // bans asking anything that gates the review card, and this is
-          // deliberately nowhere near it. Same wording the web install card
-          // has used since it shipped.
-          <Text style={styles.nudge}>
-            Ratings help other people find Whobela — if it worked for you, we&apos;d love one.
-          </Text>
         ) : null
       }
     />
@@ -174,16 +179,4 @@ const styles = StyleSheet.create({
   emptyTitle: type.heading,
   emptyBody: { ...type.body, color: colors.muted, textAlign: "center" },
   footer: { paddingVertical: spacing.md },
-  nudge: {
-    // muted, not rose300: on the rose50 screen background rose300 measures
-    // 1.72:1, well under WCAG AA's 4.5:1 for body text, and on the phone it
-    // was barely legible. muted is 4.61:1 and is what the rest of the app
-    // already uses for secondary copy. A ratings nudge nobody can read is a
-    // ratings nudge that does nothing.
-    ...type.small,
-    color: colors.muted,
-    textAlign: "center",
-    paddingTop: spacing.md,
-    paddingHorizontal: spacing.md,
-  },
 });
