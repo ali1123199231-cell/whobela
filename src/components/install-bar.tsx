@@ -22,6 +22,21 @@ const DISMISSAL_DAYS = 30;
 export function InstallBar() {
   const [visible, setVisible] = useState(false);
 
+  // Chrome offers the PWA on its own once the page qualifies, and on Android
+  // that competes directly with the bar below: a home-screen PWA can never be
+  // rated or ranked, so an install routed around the Store is a review the app
+  // cannot receive and a ranking signal Play never sees — the same reasoning
+  // install-app.tsx already applies on the dashboard. Preventing the event
+  // suppresses Chrome's mini-infobar. Deliberately not conditional on the bar
+  // being shown: if someone dismissed it, the answer is still "not the PWA".
+  // Left alone off Android, where the PWA is the only thing on offer.
+  useEffect(() => {
+    if (!isAndroid()) return;
+    const suppress = (event: Event) => event.preventDefault();
+    window.addEventListener("beforeinstallprompt", suppress);
+    return () => window.removeEventListener("beforeinstallprompt", suppress);
+  }, []);
+
   useEffect(() => {
     // Nothing to offer anyone who can't install it, and nothing to offer from
     // inside a launched PWA — which is also how the site behaves when it is
