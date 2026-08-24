@@ -94,7 +94,13 @@ export default function RootLayout() {
           <Stack.Screen name="signup" options={{ title: "Create your account" }} />
           {/* Without these two, expo-router falls back to the file name and the
               header reads "verify-email" and "delete-account". */}
-          <Stack.Screen name="verify-email" options={{ title: "Verify your email" }} />
+          {/* No way off this screen but through it: the header back arrow and
+              the swipe gesture both landed on the pre-signup editor, which
+              then invited a signed-in person to "sign up to keep this". */}
+          <Stack.Screen
+            name="verify-email"
+            options={{ title: "Verify your email", headerBackVisible: false, gestureEnabled: false }}
+          />
           <Stack.Screen name="delete-account" options={{ title: "Delete account" }} />
           <Stack.Screen name="change-email" options={{ title: "Change your email" }} />
         </Stack>

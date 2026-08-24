@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from "react-native";
-import { router } from "expo-router";
+import { useCallback, useState } from "react";
+import { BackHandler, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from "react-native";
+import { router, useFocusEffect } from "expo-router";
 import { useAuth } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { Button, Field, Banner } from "@/components/ui";
@@ -36,6 +36,16 @@ export default function VerifyEmailScreen() {
   // verified has by definition never been answered, so Answers is an empty
   // state — the next thing they need is to write the invitation that produces
   // the answers.
+  // The hardware back button is the third way off this screen, and disabling
+  // the header arrow does not touch it. Swallowing it keeps the wall a wall;
+  // the doors below are the way out.
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener("hardwareBackPress", () => true);
+      return () => subscription.remove();
+    }, [])
+  );
+
   const enterTheApp = () => router.replace("/(tabs)/invitation");
 
   const verify = async () => {
